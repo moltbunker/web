@@ -138,7 +138,7 @@ This is infrastructure. What you do with it is your decision.
 
 **Token Contract:**
 ```
-0xBUNKER_TOKEN_COMING_SOON
+0x501Cc10b5f9E3b332beE5Ac900B306EC0c4CAB07
 ```
 
 ## Next Steps

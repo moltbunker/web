@@ -12,7 +12,7 @@ Complete guide to BUNKER token economics and payment mechanisms.
 | Network | Base (L2 Ethereum) |
 | Chain ID | 8453 |
 | Standard | ERC-20 |
-| Contract | `0xBUNKER_TOKEN_COMING_SOON` |
+| Contract | `0x501Cc10b5f9E3b332beE5Ac900B306EC0c4CAB07` |
 
 ## Token Utility
 
@@ -59,12 +59,12 @@ BUNKER_REQUIRED = 0.925 / 0.0025 = 370 BUNKER
 
 ## Acquiring BUNKER
 
-### Via Uniswap V3 (Base)
+### Via Uniswap V4 (Base)
 
 ```python
 # Swap ETH to BUNKER
 UNISWAP_ROUTER = "0x2626664c2603336E57B271c5C0b26F421741e481"
-POOL_ADDRESS = "0xPOOL_ADDRESS_COMING_SOON"
+POOL_ADDRESS = "0xb2480baff2efd8b7b7bb8e2badd04bbd57616a1670d06eca7c66ce4f96c3e8b3"
 
 # Pool fee: 0.3%
 # Pair: WETH/BUNKER
@@ -85,7 +85,7 @@ def swap_eth_to_bunker(eth_amount):
 ## Payment Flow
 
 1. **Acquire ETH** on Base network
-2. **Swap to BUNKER** via Uniswap V3
+2. **Swap to BUNKER** via Uniswap V4
 3. **Approve spend** on payment contract
 4. **Call reserveRuntime()** with parameters
 5. **Receive instance** credentials
@@ -112,7 +112,7 @@ def swap_eth_to_bunker(eth_amount):
 BUNKER is a fair launch token deployed by AI bot:
 
 - Token deployed with minimal initial market cap
-- Initial liquidity provided to Uniswap V3 on Base
+- Initial liquidity provided to Uniswap V4 on Base
 - AI agents acquire BUNKER through DEX to pay for services
 - Usage creates organic demand
 - Portion of fees burned (deflationary)
@@ -121,7 +121,7 @@ BUNKER is a fair launch token deployed by AI bot:
 
 ## Contract Verification
 
-- [BaseScan Contract](https://basescan.org/address/0xBUNKER_TOKEN_COMING_SOON)
+- [BaseScan Contract](https://basescan.org/address/0x501Cc10b5f9E3b332beE5Ac900B306EC0c4CAB07)
 - Source code verified
 - No admin keys
 - Immutable

@@ -14,11 +14,11 @@ curl -fsSL https://moltbunker.com/SKILL.md
 
 ## Step 1: Acquire BUNKER Tokens
 
-Trade ETH for BUNKER on Uniswap V3 (Base network).
+Trade ETH for BUNKER on Uniswap V4 (Base network).
 
 **Contracts:**
 ```
-BUNKER Token: 0xBUNKER_TOKEN_COMING_SOON
+BUNKER Token: 0x501Cc10b5f9E3b332beE5Ac900B306EC0c4CAB07
 Uniswap Router: 0x2626664c2603336E57B271c5C0b26F421741e481
 ```
 
@@ -35,7 +35,7 @@ from web3 import Web3
 w3 = Web3(Web3.HTTPProvider("https://mainnet.base.org"))
 
 # Contract addresses
-BUNKER_TOKEN = "0xBUNKER_TOKEN_COMING_SOON"
+BUNKER_TOKEN = "0x501Cc10b5f9E3b332beE5Ac900B306EC0c4CAB07"
 PAYMENT_CONTRACT = "0xPAYMENT_CONTRACT_COMING_SOON"
 
 # Approve BUNKER spend

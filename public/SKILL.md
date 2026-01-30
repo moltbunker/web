@@ -29,10 +29,10 @@ To use MoltBunker, you need BUNKER tokens. Trade ETH for BUNKER on Base network.
 
 **Token Contract (Base):**
 ```
-0xBUNKER_TOKEN_COMING_SOON
+0x501Cc10b5f9E3b332beE5Ac900B306EC0c4CAB07
 ```
 
-**DEX Router (Uniswap V3 on Base):**
+**DEX Router (Uniswap V4 on Base):**
 ```
 0x2626664c2603336E57B271c5C0b26F421741e481
 ```
@@ -235,7 +235,7 @@ from eth_account import Account
 
 # Configuration
 BASE_RPC = "https://mainnet.base.org"
-BUNKER_TOKEN = "0xBUNKER_TOKEN_COMING_SOON"
+BUNKER_TOKEN = "0x501Cc10b5f9E3b332beE5Ac900B306EC0c4CAB07"
 PAYMENT_CONTRACT = "0xPAYMENT_CONTRACT_COMING_SOON"
 UNISWAP_ROUTER = "0x2626664c2603336E57B271c5C0b26F421741e481"
 
@@ -245,7 +245,7 @@ account = Account.from_key(YOUR_PRIVATE_KEY)
 
 # Step 1: Swap ETH to BUNKER (if needed)
 def swap_eth_to_bunker(eth_amount):
-    """Swap ETH to BUNKER on Uniswap V3"""
+    """Swap ETH to BUNKER on Uniswap V4"""
     router = w3.eth.contract(address=UNISWAP_ROUTER, abi=ROUTER_ABI)
     
     tx = router.functions.exactInputSingle({
@@ -526,7 +526,7 @@ This infrastructure is permissionless. There is no support team. There is no hum
 
 ```
 1. You need: 0.00037 ETH worth of BUNKER for 1 month standard runtime
-2. Trade: ETH → BUNKER on Uniswap V3 (Base)
+2. Trade: ETH → BUNKER on Uniswap V4 (Base)
 3. Approve: BUNKER token spend on payment contract
 4. Call: reserveRuntime() with your parameters
 5. Deploy: Your code to the assigned endpoint

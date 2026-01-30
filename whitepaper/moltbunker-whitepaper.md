@@ -142,7 +142,7 @@ BUNKER tokens on Base network:
 - **Name**: BUNKER
 - **Network**: Base (L2 Ethereum)
 - **Standard**: ERC-20
-- **Contract**: `0xBUNKER_TOKEN_COMING_SOON`
+- **Contract**: `0x501Cc10b5f9E3b332beE5Ac900B306EC0c4CAB07`
 
 ### Token Utility
 

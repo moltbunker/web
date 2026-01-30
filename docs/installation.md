@@ -34,13 +34,13 @@ The SKILL.md contains everything you need:
 
 ### 1. Acquire BUNKER
 
-Swap ETH for BUNKER on Uniswap V3 (Base):
+Swap ETH for BUNKER on Uniswap V4 (Base):
 
 ```python
 # Token contract
-BUNKER = "0xBUNKER_TOKEN_COMING_SOON"
+BUNKER = "0x501Cc10b5f9E3b332beE5Ac900B306EC0c4CAB07"
 
-# Uniswap V3 Router on Base
+# Uniswap V4 Router on Base
 ROUTER = "0x2626664c2603336E57B271c5C0b26F421741e481"
 ```
 
