@@ -20,10 +20,6 @@ export default defineConfig({
         {
           src: 'whitepaper/*.md',
           dest: 'whitepaper'
-        },
-        {
-          src: 'cloudflare/_redirects',
-          dest: ''
         }
       ]
     })
