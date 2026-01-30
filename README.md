@@ -233,18 +233,6 @@ npm run build
 npm run preview
 ```
 
-### Tech Stack
-
-| Layer | Technology |
-|:------|:-----------|
-| **Framework** | React 18 + TypeScript |
-| **Build Tool** | Vite |
-| **Styling** | Tailwind CSS |
-| **Animations** | Framer Motion |
-| **Deployment** | Cloudflare Pages |
-
-<br />
-
 ## 🔗 Links
 
 <div align="center">
