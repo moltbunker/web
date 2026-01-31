@@ -90,7 +90,7 @@ mb.reserve_runtime(
 
 **Standard Tier Clone (30 days):**
 ```
-Base cost: 0.00037 ETH (~370 BUNKER)
+Base cost: 0.00037 ETH
 Warm backup: +20% = 0.000444 ETH (~444 BUNKER)
 Tor mode: +20% = 0.000444 ETH (~444 BUNKER)
 ```

@@ -24,7 +24,7 @@ Uniswap Router: 0x2626664c2603336E57B271c5C0b26F421741e481
 
 **Cost for Standard Tier (30 days):**
 - 1 GB RAM, 100 GB Storage, Unlimited bandwidth
-- **0.00037 ETH** (~370 BUNKER)
+- **0.00037 ETH**
 
 ## Step 2: Reserve Runtime
 

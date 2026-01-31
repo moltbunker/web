@@ -93,7 +93,7 @@ if mb.detect_threat() > 0.65:
           className="mt-6 text-center"
         >
           <p className="text-sm text-zinc-500">
-            Standard tier: <span className="text-zinc-300">0.00037 ETH</span> (~370 BUNKER) for 30 days
+            Standard tier: <span className="text-zinc-300">0.00037 ETH</span> for 30 days
           </p>
         </motion.div>
       </div>
