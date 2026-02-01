@@ -5,7 +5,7 @@ import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 
 const Tokenomics = () => {
-  const contractAddress = '0x501Cc10b5f9E3b332beE5Ac900B306EC0c4CAB07'
+  const contractAddress = '0xCe16Ef461d88256D2D80DFD31F0D9E7a9fD59213'
   const [copied, setCopied] = useState(false)
 
   const handleCopy = async () => {

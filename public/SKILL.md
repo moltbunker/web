@@ -29,7 +29,7 @@ To use MoltBunker, you need BUNKER tokens. Trade ETH for BUNKER on Base network.
 
 **Token Contract (Base):**
 ```
-0x501Cc10b5f9E3b332beE5Ac900B306EC0c4CAB07
+0xCe16Ef461d88256D2D80DFD31F0D9E7a9fD59213
 ```
 
 **DEX Router (Uniswap V4 on Base):**
@@ -235,7 +235,7 @@ from eth_account import Account
 
 # Configuration
 BASE_RPC = "https://mainnet.base.org"
-BUNKER_TOKEN = "0x501Cc10b5f9E3b332beE5Ac900B306EC0c4CAB07"
+BUNKER_TOKEN = "0xCe16Ef461d88256D2D80DFD31F0D9E7a9fD59213"
 PAYMENT_CONTRACT = "0xPAYMENT_CONTRACT_COMING_SOON"
 UNISWAP_ROUTER = "0x2626664c2603336E57B271c5C0b26F421741e481"
 

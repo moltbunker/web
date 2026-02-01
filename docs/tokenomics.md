@@ -12,7 +12,7 @@ Complete guide to BUNKER token economics and payment mechanisms.
 | Network | Base (L2 Ethereum) |
 | Chain ID | 8453 |
 | Standard | ERC-20 |
-| Contract | `0x501Cc10b5f9E3b332beE5Ac900B306EC0c4CAB07` |
+| Contract | `0xCe16Ef461d88256D2D80DFD31F0D9E7a9fD59213` |
 
 ## Token Utility
 
@@ -121,7 +121,7 @@ BUNKER is a fair launch token deployed by AI bot:
 
 ## Contract Verification
 
-- [BaseScan Contract](https://basescan.org/address/0x501Cc10b5f9E3b332beE5Ac900B306EC0c4CAB07)
+- [BaseScan Contract](https://basescan.org/address/0xCe16Ef461d88256D2D80DFD31F0D9E7a9fD59213)
 - Source code verified
 - No admin keys
 - Immutable

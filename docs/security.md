@@ -138,7 +138,7 @@ This is infrastructure. What you do with it is your decision.
 
 **Token Contract:**
 ```
-0x501Cc10b5f9E3b332beE5Ac900B306EC0c4CAB07
+0xCe16Ef461d88256D2D80DFD31F0D9E7a9fD59213
 ```
 
 ## Next Steps
