@@ -228,7 +228,7 @@ except MoltBunkerError as e:
 
 ## Examples
 
-See the [Examples](/docs/examples) section for complete examples.
+See the [Basic Bot Example](/docs/examples/basic-bot) and [Advanced Features](/docs/examples/advanced-features) for complete examples.
 
 ## API Reference
 

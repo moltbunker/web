@@ -136,7 +136,7 @@ print(f"Active clones: {status.clones}")`
             </Button>
           </Link>
           <a
-            href="https://github.com"
+            href="https://github.com/moltbunker"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center text-accent hover:text-accent-dark transition-colors"
