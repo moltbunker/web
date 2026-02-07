@@ -40,6 +40,29 @@ const Header = () => {
                 {item.name}
               </Link>
             ))}
+            <motion.div className="relative ml-1">
+              <Link to="/testnet">
+                <motion.span
+                  className={`relative inline-flex items-center px-4 py-1.5 text-sm font-semibold rounded-md overflow-hidden transition-colors ${
+                    isActive('/testnet')
+                      ? 'text-red-300'
+                      : 'text-red-400 hover:text-red-300'
+                  }`}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <motion.span
+                    className="absolute inset-0 rounded-md border border-red-500/50"
+                    animate={{
+                      borderColor: ['rgba(239,68,68,0.3)', 'rgba(239,68,68,0.7)', 'rgba(239,68,68,0.3)'],
+                      boxShadow: ['0 0 8px rgba(239,68,68,0)', '0 0 12px rgba(239,68,68,0.15)', '0 0 8px rgba(239,68,68,0)'],
+                    }}
+                    transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+                  />
+                  <span className="relative z-10">Testnet</span>
+                </motion.span>
+              </Link>
+            </motion.div>
             <a
               href="https://github.com/moltbunker"
               target="_blank"
@@ -90,6 +113,25 @@ const Header = () => {
                   {item.name}
                 </Link>
               ))}
+              <Link
+                to="/testnet"
+                onClick={() => setMobileMenuOpen(false)}
+                className="relative block"
+              >
+                <motion.span
+                  className={`flex items-center px-3 py-2 text-sm font-semibold rounded-md border transition-colors ${
+                    isActive('/testnet')
+                      ? 'border-red-500/50 text-red-300'
+                      : 'border-red-500/50 text-red-400'
+                  }`}
+                  animate={!isActive('/testnet') ? {
+                    borderColor: ['rgba(239,68,68,0.3)', 'rgba(239,68,68,0.7)', 'rgba(239,68,68,0.3)'],
+                  } : {}}
+                  transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  Testnet
+                </motion.span>
+              </Link>
               <a
                 href="https://github.com/moltbunker"
                 target="_blank"

@@ -12,6 +12,14 @@ dist
 dist-ssr
 *.local
 
+# Environment & secrets
+.env
+.env.*
+.dev.vars
+
+# Cloudflare
+.wrangler/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -22,6 +30,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# AI / internal
 TODO.md
 plans
 CLAUDE.md
