@@ -4,6 +4,7 @@ import Footer from '@/components/layout/Footer'
 import Home from '@/pages/Home'
 import Docs from '@/pages/Docs'
 import Roadmap from '@/pages/roadmap'
+import Testnet from '@/pages/Testnet'
 import WhitepaperPage from '@/pages/Whitepaper'
 import NotFound from '@/pages/NotFound'
 
@@ -18,6 +19,7 @@ function App() {
             <Route path="/docs" element={<Docs />} />
             <Route path="/docs/:slug" element={<Docs />} />
             <Route path="/roadmap" element={<Roadmap />} />
+            <Route path="/testnet" element={<Testnet />} />
             <Route path="/whitepaper" element={<WhitepaperPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
