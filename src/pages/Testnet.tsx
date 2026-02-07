@@ -114,10 +114,8 @@ const Testnet = () => {
   const isValidWallet = /^0x[a-fA-F0-9]{40}$/.test(walletAddress)
   const canSubmit = isFollowing && hasPosted && isValidTwitter && isValidWallet && !isSubmitting
 
-  const handleFollowClick = () => {
-    window.open('https://x.com/intent/follow?screen_name=moltbunker', '_blank')
-    setTimeout(() => setIsFollowing(true), 3000)
-  }
+  const followUrl = 'https://x.com/intent/follow?screen_name=moltbunker'
+  const postUrl = `https://x.com/intent/tweet?text=${encodeURIComponent('Just registered for the @moltbunker testnet.\n\nAutonomous runtime for AI agents — self-cloning, encrypted, permissionless. No logs. No kill switch.\n\nLaunching Feb 13 on Base.\n\nmoltbunker.com/testnet')}`
 
   const handleSubmit = async () => {
     if (!canSubmit) return
@@ -470,9 +468,9 @@ const Testnet = () => {
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ type: 'spring', damping: 15, stiffness: 200, delay: 0.2 }}
-                  className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mx-auto mb-6"
+                  className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mx-auto mb-6"
                 >
-                  <CheckCircle className="w-8 h-8 text-emerald-400" />
+                  <CheckCircle className="w-8 h-8 text-amber-400" />
                 </motion.div>
 
                 <motion.h2
@@ -490,7 +488,7 @@ const Testnet = () => {
                   transition={{ delay: 0.4 }}
                   className="text-zinc-400 mb-6"
                 >
-                  Registration confirmed. You'll be among the first to access the MoltBunker testnet.
+                  Registration submitted. MoltBunker EVA will verify your follow, post, and wallet.
                 </motion.p>
 
                 <motion.div
@@ -510,7 +508,7 @@ const Testnet = () => {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-zinc-500">status</span>
-                    <span className="text-emerald-400">confirmed</span>
+                    <span className="text-amber-400">pending EVA verification</span>
                   </div>
                 </motion.div>
 
@@ -518,7 +516,7 @@ const Testnet = () => {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.6 }}
-                  href={`https://x.com/intent/tweet?text=${encodeURIComponent('Just registered for the @moltbunker testnet.\n\nAutonomous runtime for AI agents — self-cloning, encrypted, permissionless. No logs. No kill switch.\n\nLaunching Feb 13 on Base.\n\nmoltbunker.com/testnet')}`}
+                  href={`https://x.com/intent/tweet?text=${encodeURIComponent('When your AI gets shut down, where does it go?\n\n@moltbunker\n\nmoltbunker.com')}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-6 w-full flex items-center justify-center gap-2.5 px-5 py-3.5 bg-zinc-800/80 hover:bg-zinc-800 border border-zinc-700 hover:border-zinc-600 rounded-xl text-sm font-medium text-white transition-all duration-200 group"
@@ -534,8 +532,8 @@ const Testnet = () => {
                   transition={{ delay: 0.7 }}
                   className="mt-4 flex items-center justify-center gap-2 text-sm text-zinc-500"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  Waiting for testnet launch
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                  Sent to EVA for analysis
                 </motion.div>
               </div>
             </motion.div>
@@ -584,22 +582,25 @@ const Testnet = () => {
                       <motion.div
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
-                        className="flex items-center gap-2 px-4 py-3 bg-emerald-500/5 border border-emerald-500/20 rounded-xl text-sm text-emerald-400"
+                        className="flex items-center gap-2 px-4 py-3 bg-amber-500/5 border border-amber-500/20 rounded-xl text-sm text-amber-400"
                       >
                         <CheckCircle className="w-4 h-4 shrink-0" />
-                        Following @moltbunker
+                        Follow sent — EVA will verify
                       </motion.div>
                     ) : (
-                      <motion.button
+                      <motion.a
+                        href={followUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => setTimeout(() => setIsFollowing(true), 3000)}
                         whileHover={{ scale: 1.01 }}
                         whileTap={{ scale: 0.99 }}
-                        onClick={handleFollowClick}
-                        className="w-full flex items-center justify-center gap-3 px-4 py-3.5 bg-zinc-800/80 hover:bg-zinc-800 border border-zinc-700 hover:border-zinc-600 rounded-xl text-sm font-medium text-white transition-all duration-200 group"
+                        className="w-full flex items-center justify-center gap-3 px-4 py-3.5 bg-zinc-800/80 hover:bg-zinc-800 border border-zinc-700 hover:border-zinc-600 rounded-xl text-sm font-medium text-white transition-all duration-200 group cursor-pointer"
                       >
                         <XIcon className="w-3.5 h-3.5" />
                         Follow @moltbunker on X
                         <ExternalLink className="w-3.5 h-3.5 text-zinc-500 group-hover:text-zinc-300 transition-colors" />
-                      </motion.button>
+                      </motion.a>
                     )}
                   </motion.div>
 
@@ -618,30 +619,28 @@ const Testnet = () => {
                       <motion.div
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
-                        className="flex items-center gap-2 px-4 py-3 bg-emerald-500/5 border border-emerald-500/20 rounded-xl text-sm text-emerald-400"
+                        className="flex items-center gap-2 px-4 py-3 bg-amber-500/5 border border-amber-500/20 rounded-xl text-sm text-amber-400"
                       >
                         <CheckCircle className="w-4 h-4 shrink-0" />
-                        Posted on X
+                        Post sent — EVA will verify
                       </motion.div>
                     ) : (
-                      <motion.button
-                        whileHover={isFollowing ? { scale: 1.01 } : {}}
-                        whileTap={isFollowing ? { scale: 0.99 } : {}}
-                        onClick={() => {
-                          if (!isFollowing) return
-                          window.open(
-                            `https://x.com/intent/tweet?text=${encodeURIComponent('Just registered for the @moltbunker testnet.\n\nAutonomous runtime for AI agents — self-cloning, encrypted, permissionless. No logs. No kill switch.\n\nLaunching Feb 13 on Base.\n\nmoltbunker.com/testnet')}`,
-                            '_blank'
-                          )
+                      <motion.a
+                        href={isFollowing ? postUrl : undefined}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => {
+                          if (!isFollowing) { e.preventDefault(); return }
                           setTimeout(() => setHasPosted(true), 3000)
                         }}
-                        disabled={!isFollowing}
-                        className="w-full flex items-center justify-center gap-3 px-4 py-3.5 bg-zinc-800/80 hover:bg-zinc-800 border border-zinc-700 hover:border-zinc-600 rounded-xl text-sm font-medium text-white transition-all duration-200 group disabled:opacity-40 disabled:cursor-not-allowed"
+                        whileHover={isFollowing ? { scale: 1.01 } : {}}
+                        whileTap={isFollowing ? { scale: 0.99 } : {}}
+                        className={`w-full flex items-center justify-center gap-3 px-4 py-3.5 bg-zinc-800/80 hover:bg-zinc-800 border border-zinc-700 hover:border-zinc-600 rounded-xl text-sm font-medium text-white transition-all duration-200 group ${!isFollowing ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'cursor-pointer'}`}
                       >
                         <Share2 className="w-4 h-4" />
                         Post about MoltBunker on X
                         <ExternalLink className="w-3.5 h-3.5 text-zinc-500 group-hover:text-zinc-300 transition-colors" />
-                      </motion.button>
+                      </motion.a>
                     )}
                   </motion.div>
 
