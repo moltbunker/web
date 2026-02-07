@@ -4,5 +4,12 @@
   "assets": {
     "directory": "./dist",
     "not_found_handling": "single-page-application"
-  }
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "moltbunker-testnet",
+      "database_id": "b9ca9fe1-28cb-4159-bb77-afff280a3880"
+    }
+  ]
 }

@@ -1,6 +1,6 @@
 import { useRef, useEffect } from 'react'
 
-const CyberRain = () => {
+const CyberRain = ({ className = 'opacity-40' }: { className?: string }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
@@ -61,7 +61,7 @@ const CyberRain = () => {
     }
   }, [])
 
-  return <canvas ref={canvasRef} className="absolute inset-0 opacity-40" />
+  return <canvas ref={canvasRef} className={`absolute inset-0 ${className}`} />
 }
 
 export default CyberRain
