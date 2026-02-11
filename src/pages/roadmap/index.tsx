@@ -14,7 +14,7 @@ import {
   SDKSection,
 } from './components'
 
-const LAUNCH_DATE = new Date('2026-02-13T00:00:00Z')
+const LAUNCH_DATE = new Date('2026-02-14T08:00:00Z') // End of Feb 13 PST
 
 interface TimeLeft {
   days: number

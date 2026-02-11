@@ -40,29 +40,16 @@ const Header = () => {
                 {item.name}
               </Link>
             ))}
-            <motion.div className="relative ml-1">
-              <Link to="/testnet">
-                <motion.span
-                  className={`relative inline-flex items-center px-4 py-1.5 text-sm font-semibold rounded-md overflow-hidden transition-colors ${
-                    isActive('/testnet')
-                      ? 'text-red-300'
-                      : 'text-red-400 hover:text-red-300'
-                  }`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <motion.span
-                    className="absolute inset-0 rounded-md border border-red-500/50"
-                    animate={{
-                      borderColor: ['rgba(239,68,68,0.3)', 'rgba(239,68,68,0.7)', 'rgba(239,68,68,0.3)'],
-                      boxShadow: ['0 0 8px rgba(239,68,68,0)', '0 0 12px rgba(239,68,68,0.15)', '0 0 8px rgba(239,68,68,0)'],
-                    }}
-                    transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-                  />
-                  <span className="relative z-10">Testnet</span>
-                </motion.span>
-              </Link>
-            </motion.div>
+            <Link
+              to="/testnet"
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                isActive('/testnet')
+                  ? 'text-white bg-zinc-800'
+                  : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
+              }`}
+            >
+              Testnet
+            </Link>
             <a
               href="https://github.com/moltbunker"
               target="_blank"
@@ -79,6 +66,13 @@ const Header = () => {
             >
               X
             </a>
+            <Link
+              to="/app"
+              className="ml-2 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-red-400 hover:text-red-300 bg-black/85 hover:bg-black/95 border border-red-500/30 hover:border-red-500/50 rounded-xl transition-all duration-300"
+              style={{ fontFamily: 'var(--font-mono)' }}
+            >
+              Launch App
+            </Link>
           </div>
 
           {/* Mobile menu button */}
@@ -116,21 +110,13 @@ const Header = () => {
               <Link
                 to="/testnet"
                 onClick={() => setMobileMenuOpen(false)}
-                className="relative block"
+                className={`block px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                  isActive('/testnet')
+                    ? 'text-white bg-zinc-800'
+                    : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
+                }`}
               >
-                <motion.span
-                  className={`flex items-center px-3 py-2 text-sm font-semibold rounded-md border transition-colors ${
-                    isActive('/testnet')
-                      ? 'border-red-500/50 text-red-300'
-                      : 'border-red-500/50 text-red-400'
-                  }`}
-                  animate={!isActive('/testnet') ? {
-                    borderColor: ['rgba(239,68,68,0.3)', 'rgba(239,68,68,0.7)', 'rgba(239,68,68,0.3)'],
-                  } : {}}
-                  transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-                >
-                  Testnet
-                </motion.span>
+                Testnet
               </Link>
               <a
                 href="https://github.com/moltbunker"
@@ -148,6 +134,14 @@ const Header = () => {
               >
                 X
               </a>
+              <Link
+                to="/app"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block mx-3 my-2 px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-red-400 hover:text-red-300 bg-black/85 hover:bg-black/95 border border-red-500/30 hover:border-red-500/50 rounded-xl transition-all duration-300 text-center"
+                style={{ fontFamily: 'var(--font-mono)' }}
+              >
+                Launch App
+              </Link>
             </motion.div>
           )}
         </AnimatePresence>
