@@ -79,6 +79,12 @@ const Header = () => {
             >
               X
             </a>
+            <Link
+              to="/app"
+              className="ml-2 px-4 py-1.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-500 rounded-lg transition-colors"
+            >
+              Launch App
+            </Link>
           </div>
 
           {/* Mobile menu button */}
@@ -148,6 +154,13 @@ const Header = () => {
               >
                 X
               </a>
+              <Link
+                to="/app"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block mx-3 my-2 px-4 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-500 rounded-lg transition-colors text-center"
+              >
+                Launch App
+              </Link>
             </motion.div>
           )}
         </AnimatePresence>
