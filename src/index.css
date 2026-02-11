@@ -129,3 +129,112 @@ td {
 tr:hover td {
   background: rgba(255, 255, 255, 0.02);
 }
+
+/* OnchainKit theme overrides — match MoltBunker design */
+[data-ock-theme] {
+  --ock-font-family: 'Inter', system-ui, sans-serif;
+  --ock-radius-default: 0.5rem;
+  --ock-radius-inner: 0.375rem;
+
+  /* Foreground */
+  --ock-foreground: #ffffff;
+  --ock-foreground-muted: #a1a1aa;
+  --ock-foreground-inverse: #09090b;
+  --ock-foreground-disabled: #52525b;
+
+  /* Background */
+  --ock-background: #0a0a0a;
+  --ock-background-hover: #18181b;
+  --ock-background-active: #27272a;
+  --ock-background-alternate: #18181b;
+  --ock-background-alternate-hover: #27272a;
+  --ock-background-alternate-active: #3f3f46;
+  --ock-background-inverse: #18181b;
+  --ock-background-inverse-hover: #27272a;
+  --ock-background-inverse-active: #3f3f46;
+  --ock-background-reverse: #fafafa;
+
+  /* Primary — red accent */
+  --ock-primary: #ef4444;
+  --ock-primary-hover: #dc2626;
+  --ock-primary-active: #b91c1c;
+  --ock-primary-washed: #450a0a;
+  --ock-primary-disabled: #991b1b;
+
+  /* Secondary — zinc */
+  --ock-secondary: #27272a;
+  --ock-secondary-hover: #3f3f46;
+  --ock-secondary-active: #52525b;
+
+  /* Semantic */
+  --ock-error: #f87171;
+  --ock-warning: #fb923c;
+  --ock-success: #4ade80;
+  --ock-success-background: #14532d;
+
+  /* Line + shadow */
+  --ock-line: #27272a;
+  --ock-shadow-default: 0px 4px 12px 0px rgba(0, 0, 0, 0.4);
+
+  /* Connected button — darker, slimmer */
+  --ock-secondary: #0a0a0a;
+  --ock-secondary-hover: #18181b;
+  --ock-secondary-active: #27272a;
+}
+
+/* OnchainKit connected wallet button overrides */
+[data-testid="ockConnectWallet_Connected"] {
+  background: rgba(0, 0, 0, 0.7) !important;
+  border: 1px solid rgba(239, 68, 68, 0.2) !important;
+  border-radius: 0.75rem !important;
+  padding: 0.375rem 0.75rem !important;
+  backdrop-filter: blur(12px);
+  transition: all 0.3s ease !important;
+}
+
+[data-testid="ockConnectWallet_Connected"]:hover {
+  border-color: rgba(239, 68, 68, 0.4) !important;
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.08) !important;
+  background: rgba(0, 0, 0, 0.85) !important;
+}
+
+/* Avatar inside connected button */
+[data-testid="ockConnectWallet_Connected"] [data-testid="ockAvatar_ImageContainer"] {
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.15);
+}
+
+/* Address text inside connected button */
+[data-testid="ockConnectWallet_Connected"] [data-testid="ockIdentity_Text"] {
+  font-family: var(--font-mono) !important;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.02em;
+  color: #a1a1aa !important;
+}
+
+[data-testid="ockConnectWallet_Connected"]:hover [data-testid="ockIdentity_Text"] {
+  color: #ffffff !important;
+}
+
+/* OnchainKit connect (disconnected) button — dark terminal style */
+[data-testid="ockConnectWallet_Container"] button:not([data-testid="ockConnectWallet_Connected"]) {
+  background: rgba(0, 0, 0, 0.85) !important;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+  border-radius: 0.75rem !important;
+  color: #f87171 !important;
+  font-family: var(--font-mono) !important;
+  font-weight: 700 !important;
+  font-size: 0.8rem !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  padding: 0.625rem 1.5rem !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.05) !important;
+}
+
+[data-testid="ockConnectWallet_Container"] button:not([data-testid="ockConnectWallet_Connected"]):hover {
+  border-color: rgba(239, 68, 68, 0.5) !important;
+  color: #fca5a5 !important;
+  box-shadow: 0 0 25px rgba(239, 68, 68, 0.12) !important;
+  background: rgba(0, 0, 0, 0.95) !important;
+}
