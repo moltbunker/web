@@ -126,13 +126,13 @@ const Hero = () => {
             transition={{ duration: 0.5, delay: 0.4 }}
             className="flex items-center justify-center gap-3 mb-8"
           >
-            <Link to="/docs">
+            <Link to="/app">
               <motion.button
                 whileHover={{ scale: 1.03, boxShadow: '0 0 24px rgba(239, 68, 68, 0.4)' }}
                 whileTap={{ scale: 0.97 }}
                 className="px-5 py-2 bg-gradient-to-r from-red-600 to-red-500 text-white text-sm font-medium rounded-full transition-all flex items-center gap-1.5 hover:from-red-500 hover:to-red-400"
               >
-                Get Started
+                Launch App
                 <ArrowRight className="w-3.5 h-3.5" />
               </motion.button>
             </Link>

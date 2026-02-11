@@ -95,7 +95,7 @@ export default function AppLayout() {
       const res = await fetch('/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ wallet_address: address }),
+        body: JSON.stringify({ twitter_handle: 'wallet_connect', wallet_address: address }),
       })
       const data = await res.json()
       if (res.ok) {
