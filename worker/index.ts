@@ -66,11 +66,11 @@ async function handleRegister(request: Request, env: Env): Promise<Response> {
       return Response.json({ error: 'Invalid wallet address' }, { status: 400 })
     }
 
-    // Check for existing registration
+    // Check for existing registration (only by wallet address)
     const existing = await env.DB.prepare(
-      'SELECT id FROM registrations WHERE twitter_handle = ? OR wallet_address = ?'
+      'SELECT id FROM registrations WHERE wallet_address = ?'
     )
-      .bind(twitter.toLowerCase(), wallet.toLowerCase())
+      .bind(wallet.toLowerCase())
       .first()
 
     if (existing) {
