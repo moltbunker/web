@@ -5,22 +5,11 @@ import { Search, Rocket } from 'lucide-react'
 import PageHeader from '@/components/app/PageHeader'
 import StatusDot from '@/components/app/StatusDot'
 import { useContainers } from '@/hooks/useApi'
-import type { ContainerInfo } from '@/lib/api'
-
-// Mock fallback
-const mockContainers: ContainerInfo[] = [
-  { id: 'mb-a1b2c3d4', image: 'nginx:1.25-alpine', status: 'running', created_at: '2026-02-06T08:00:00Z', encrypted: true, regions: ['americas', 'europe', 'asia_pacific'] },
-  { id: 'mb-d4e5f6g7', image: 'redis:7-alpine', status: 'running', created_at: '2026-02-08T14:00:00Z', encrypted: true, regions: ['europe', 'americas'] },
-  { id: 'mb-g7h8i9j0', image: 'ollama/ollama:latest', status: 'running', created_at: '2026-02-10T06:00:00Z', encrypted: true, regions: ['americas'] },
-  { id: 'mb-j0k1l2m3', image: 'postgres:16', status: 'stopped', created_at: '2026-02-04T10:00:00Z', encrypted: true, regions: ['europe'] },
-  { id: 'mb-m3n4o5p6', image: 'python:3.12-slim', status: 'deploying', created_at: '2026-02-10T12:00:00Z', encrypted: true, regions: ['asia_pacific'] },
-]
 
 const statusFilters = ['all', 'running', 'deploying', 'stopped', 'error'] as const
 
 export default function Containers() {
-  const { data: apiContainers } = useContainers()
-  const containers = apiContainers ?? mockContainers
+  const { data: containers = [] } = useContainers()
 
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
@@ -38,7 +27,7 @@ export default function Containers() {
         action={
           <Link
             to="/app/deploy"
-            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white text-sm font-medium rounded-lg shadow-lg shadow-red-500/20 transition-all"
+            className="btn-action"
           >
             <Rocket className="w-4 h-4" />
             Deploy New

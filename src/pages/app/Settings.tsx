@@ -6,22 +6,13 @@ import PageHeader from '@/components/app/PageHeader'
 import TerminalLog from '@/components/app/TerminalLog'
 import StatusDot from '@/components/app/StatusDot'
 import { useApiKeys, useCreateApiKey, useDeleteApiKey, useStatus } from '@/hooks/useApi'
-import type { ApiKeyListItem } from '@/lib/api'
-
-// Mock fallback
-const mockApiKeys: ApiKeyListItem[] = [
-  { id: '1', prefix: 'mb_live_a3kf', name: 'Production', created_at: '2026-01-15T00:00:00Z', last_used_at: '2026-02-10T12:00:00Z' },
-  { id: '2', prefix: 'mb_live_x9zm', name: 'CI/CD Pipeline', created_at: '2026-02-01T00:00:00Z', last_used_at: '2026-02-10T11:00:00Z' },
-]
 
 export default function Settings() {
   const { address } = useAccount()
-  const { data: apiKeys } = useApiKeys()
+  const { data: keys = [] } = useApiKeys()
   const { data: status } = useStatus()
   const createKey = useCreateApiKey()
   const deleteKey = useDeleteApiKey()
-
-  const keys = apiKeys ?? mockApiKeys
 
   const [copied, setCopied] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -173,10 +164,10 @@ export default function Settings() {
         <h2 className="text-lg font-semibold text-white mb-4">Node Configuration</h2>
         <div className="bg-black border border-zinc-800 rounded-lg divide-y divide-zinc-800/50">
           {[
-            { icon: Globe, label: 'Region', value: status?.region ?? 'europe' },
+            { icon: Globe, label: 'Region', value: status?.region || '—' },
             { icon: Shield, label: 'Node ID', value: status?.node_id?.slice(0, 16) ?? '—', mono: true },
             { label: 'Tor', value: status?.tor_enabled ? 'Active' : 'Disabled', dot: status?.tor_enabled ? 'running' : 'stopped' },
-            { label: 'Version', value: status?.version ?? '1.0.0' },
+            { label: 'Version', value: status?.version ?? '—' },
           ].map((item) => (
             <div key={item.label} className="flex items-center justify-between px-4 py-3">
               <span className="text-sm text-zinc-400">{item.label}</span>
@@ -285,7 +276,7 @@ export default function Settings() {
                   <div className="flex gap-3">
                     <button
                       onClick={() => setShowCreateModal(false)}
-                      className="flex-1 px-4 py-2.5 border border-zinc-700 text-zinc-300 hover:text-white rounded-lg text-sm transition-colors"
+                      className="flex-1 px-4 py-2.5 bg-zinc-900 hover:bg-zinc-800 active:bg-zinc-700 border border-zinc-700 text-zinc-300 hover:text-white rounded-lg text-sm transition-colors"
                     >
                       Cancel
                     </button>
@@ -293,7 +284,7 @@ export default function Settings() {
                       whileTap={{ scale: 0.98 }}
                       onClick={handleCreateKey}
                       disabled={!newKeyName.trim() || createKey.isPending}
-                      className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 disabled:bg-zinc-800 disabled:text-zinc-600 text-white rounded-lg text-sm font-medium transition-colors"
+                      className="btn-action flex-1 justify-center"
                     >
                       Create
                     </motion.button>

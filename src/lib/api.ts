@@ -17,20 +17,105 @@ export class ApiError extends Error {
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
+export interface AggregatedCapacity {
+  cpu_total: number
+  memory_total_gb: number
+  storage_total_gb: number
+  cpu_used: number
+  memory_used_gb: number
+  storage_used_gb: number
+  online_nodes: number
+  total_nodes: number
+}
+
+/** @deprecated Use AggregatedCapacity instead */
+export type NetworkCapacity = AggregatedCapacity
+
+export interface SecurityPosture {
+  tls_version: string
+  encryption_algo: string
+  sev_snp_supported: boolean
+  sev_snp_active: boolean
+  seccomp_enabled: boolean
+  tor_enabled: boolean
+  cert_pinned_peers: number
+  encrypted_containers: number
+  total_containers: number
+}
+
+export interface HardwareProfile {
+  cpu_model: string
+  cpu_arch: string
+  cpu_threads: number
+  cpu_cores: number
+  cpu_sockets: number
+  memory_gb: number
+  memory_type: string
+  memory_ecc: boolean
+  storage_gb: number
+  storage_type: string
+  storage_model: string
+  bandwidth_mbps: number
+  network_interface?: string
+  sev_snp_supported: boolean
+  sev_snp_level: string
+  tpm_version: string
+  os: string
+  os_version: string
+  kernel: string
+  hostname: string
+}
+
+export interface CapacityProfile {
+  cpu_cores: number
+  memory_gb: number
+  storage_gb: number
+  bandwidth_mbps: number
+  gpu_count?: number
+  gpu_model?: string
+  hardware?: HardwareProfile
+}
+
+export interface NodeProfile {
+  node_id: string
+  address?: string
+  wallet_address?: string
+  region: string
+  country?: string
+  online: boolean
+  last_seen: string
+  capacity: CapacityProfile
+  tier: string
+  role: string
+  reputation_score: number
+  staking_amount: number
+  active_containers: number
+  encrypted_containers: number
+  version?: string
+  badges?: string[]
+  blocked?: boolean
+}
+
 export interface StatusResponse {
   node_id: string
-  role: string
+  running: boolean
   version: string
   uptime: string
-  peer_count: number
-  region: string
+  network_nodes: number
+  containers: number
   tor_enabled: boolean
-  onion_address?: string
-  staking_tier: string
-  staking_amount: string
-  reputation_score: number
-  active_containers: number
-  resources: ResourceInfo
+  tor_address?: string
+  region: string
+  threat_level: number
+  timestamp: string
+
+  // Extended fields
+  network_capacity?: AggregatedCapacity
+  security?: SecurityPosture
+  node_tier?: string
+  node_role?: string
+  reputation_score?: number
+  known_nodes?: NodeProfile[]
 }
 
 export interface ResourceInfo {
@@ -88,6 +173,7 @@ export interface DeployRequest {
   resources?: ResourceLimits
   tor_only?: boolean
   onion_service?: boolean
+  reservation_id?: string
 }
 
 export interface DeployResponse {
@@ -129,6 +215,7 @@ export interface ContainerInfo {
   encrypted: boolean
   onion_address?: string
   regions: string[]
+  owner?: string
 }
 
 // Deployments
@@ -222,8 +309,8 @@ export interface CloneResponse {
 
 // Auth
 export interface AuthChallengeResponse {
-  challenge: string
-  expires_at: string
+  message: string
+  expires_in: number
 }
 
 export interface AuthVerifyRequest {
@@ -233,9 +320,10 @@ export interface AuthVerifyRequest {
 }
 
 export interface AuthVerifyResponse {
-  token: string
-  expires_at: string
-  address: string
+  access_token: string
+  expires_in: number
+  wallet: string
+  auth_type: string
 }
 
 // API Keys
@@ -275,12 +363,60 @@ export interface LogEntry {
   message: string
 }
 
+// Exec Terminal
+export interface ExecChallengeResponse {
+  nonce: string
+  message: string
+}
+
+// Catalog
+export interface CatalogPreset {
+  id: string
+  name: string
+  image: string
+  description: string
+  category_id: string
+  default_tier: string
+  tags: string[]
+  enabled: boolean
+  sort_order: number
+}
+
+export interface CatalogCategory {
+  id: string
+  label: string
+  enabled: boolean
+  sort_order: number
+}
+
+export interface CatalogTier {
+  id: string
+  name: string
+  description: string
+  cpu: string
+  memory: string
+  storage: string
+  monthly: number
+  enabled: boolean
+  popular: boolean
+  sort_order: number
+}
+
+export interface CatalogConfig {
+  presets: CatalogPreset[]
+  categories: CatalogCategory[]
+  tiers: CatalogTier[]
+  updated_at: string
+  version: number
+}
+
 // ─── Client ──────────────────────────────────────────────────────────────────
 
 export class ApiClient {
   private token: string | null = null
   private tokenExpiresAt: number = 0
   private baseUrl: string
+  onUnauthorized: (() => void) | null = null
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl
@@ -288,9 +424,9 @@ export class ApiClient {
 
   // ── Token management ─────────────────────────
 
-  setToken(token: string, expiresAt: string) {
+  setToken(token: string, expiresInSeconds: number) {
     this.token = token
-    this.tokenExpiresAt = new Date(expiresAt).getTime()
+    this.tokenExpiresAt = Date.now() + expiresInSeconds * 1000
   }
 
   clearToken() {
@@ -328,6 +464,10 @@ export class ApiClient {
     })
 
     if (!res.ok) {
+      if (res.status === 401) {
+        this.clearToken()
+        this.onUnauthorized?.()
+      }
       let errorBody: { error?: string; message?: string } = {}
       try {
         errorBody = await res.json()
@@ -374,6 +514,10 @@ export class ApiClient {
     return this.request<HealthCheckResponse>('GET', '/v1/health')
   }
 
+  getCatalog() {
+    return this.request<CatalogConfig>('GET', '/v1/catalog')
+  }
+
   // ── Deploy ────────────────────────────────────
 
   deploy(req: DeployRequest) {
@@ -402,9 +546,27 @@ export class ApiClient {
     return this.request<void>('DELETE', `/v1/containers/${id}`)
   }
 
-  getContainerLogs(id: string, tail?: number) {
+  async getContainerLogs(id: string, tail?: number): Promise<LogEntry[]> {
     const query = tail ? `?tail=${tail}` : ''
-    return this.request<LogEntry[]>('GET', `/v1/containers/${id}/logs${query}`)
+    const res = await this.request<{ logs: string }>('GET', `/v1/containers/${id}/logs${query}`)
+    const raw = res.logs ?? ''
+    if (!raw) return []
+    return raw.split('\n').filter(Boolean).map((line) => {
+      // Format: "[stdout] [2026-02-14T08:27:19Z] message"
+      const m = line.match(/^\[(stdout|stderr)]\s+\[([^\]]+)]\s+(.*)$/)
+      if (m) {
+        const stream = m[1]
+        const msg = m[3]
+        // Detect actual log level from message content
+        let level = stream === 'stderr' ? 'warn' : 'info'
+        if (/\[error\]/i.test(msg) || /\berror\b/i.test(msg)) level = 'error'
+        else if (/\[warn/i.test(msg) || /\bwarn(ing)?\b/i.test(msg)) level = 'warn'
+        else if (/\[notice\]/i.test(msg) || /\[info\]/i.test(msg)) level = 'info'
+        else if (/\[debug\]/i.test(msg)) level = 'debug'
+        return { timestamp: m[2], level, message: msg }
+      }
+      return { timestamp: '', level: '', message: line }
+    })
   }
 
   // ── Deployments ───────────────────────────────
@@ -483,5 +645,23 @@ export class ApiClient {
 
   deleteApiKey(id: string) {
     return this.request<void>('DELETE', `/v1/api-keys/${id}`)
+  }
+
+  // ── Exec Terminal ──────────────────────────────
+
+  execChallenge(containerID: string) {
+    return this.request<ExecChallengeResponse>('POST', '/v1/exec/challenge', {
+      container_id: containerID,
+    })
+  }
+
+  /**
+   * Build the WebSocket URL for exec, including auth params.
+   * Uses VITE_WS_BASE_URL to connect directly to the API server,
+   * bypassing the Vite dev proxy (which can't upgrade through Cloudflare Tunnel).
+   */
+  execWebSocketUrl(nonce: string, signature: string, cols: number, rows: number): string {
+    const wsBase = import.meta.env.VITE_WS_BASE_URL || this.baseUrl.replace(/^http/, 'ws')
+    return `${wsBase}/v1/exec/ws?nonce=${encodeURIComponent(nonce)}&signature=${encodeURIComponent(signature)}&cols=${cols}&rows=${rows}`
   }
 }

@@ -4,8 +4,23 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { WagmiProvider, createConfig, http } from 'wagmi'
 import { base, baseSepolia } from 'wagmi/chains'
 import { coinbaseWallet, metaMask, injected } from 'wagmi/connectors'
+import { ApiError } from '@/lib/api'
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: (failureCount, error) => {
+        // Don't retry on 401/403 — onUnauthorized handles logout
+        if (error instanceof ApiError && (error.status === 401 || error.status === 403)) return false
+        return failureCount < 2
+      },
+      throwOnError: false,
+    },
+    mutations: {
+      throwOnError: false,
+    },
+  },
+})
 
 const wagmiConfig = createConfig({
   chains: [base, baseSepolia],
