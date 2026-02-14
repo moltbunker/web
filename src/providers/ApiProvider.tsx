@@ -19,25 +19,22 @@ export default function ApiProvider({ children }: { children: React.ReactNode })
     expiresAt: 0,
   })
 
-  // Listen for auth state changes
+  // Listen for auth state changes and 401 responses
   useEffect(() => {
     authManager.current.setOnStateChange(setAuth)
-    return () => authManager.current.destroy()
-  }, [])
-
-  // Auto-authenticate when wallet connects
-  useEffect(() => {
-    if (isConnected && address && !auth.isAuthenticated) {
-      authManager.current
-        .authenticate(address, signMessageAsync)
-        .catch(() => {
-          // User may reject signature — silent fail
-        })
+    client.onUnauthorized = () => authManager.current.logout()
+    return () => {
+      authManager.current.destroy()
+      client.onUnauthorized = null
     }
+  }, [client])
+
+  // Logout when wallet disconnects
+  useEffect(() => {
     if (!isConnected && auth.isAuthenticated) {
       authManager.current.logout()
     }
-  }, [isConnected, address, auth.isAuthenticated, signMessageAsync])
+  }, [isConnected, auth.isAuthenticated])
 
   const authenticate = useCallback(async () => {
     if (!address) return

@@ -173,8 +173,8 @@ const Hero = () => {
               <div className="text-xs text-zinc-500 uppercase tracking-wide mt-1">Logging</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-semibold text-white">Feb 13</div>
-              <div className="text-xs text-zinc-500 uppercase tracking-wide mt-1">Launch 2026</div>
+              <div className="text-2xl font-semibold text-white flex items-center gap-2 justify-center"><span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />Live</div>
+              <div className="text-xs text-zinc-500 uppercase tracking-wide mt-1">Base Sepolia</div>
             </div>
           </motion.div>
 

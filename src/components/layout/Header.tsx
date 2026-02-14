@@ -9,7 +9,6 @@ const Header = () => {
 
   const navigation = [
     { name: 'Docs', href: '/docs' },
-    { name: 'Roadmap', href: '/roadmap' },
     { name: 'Whitepaper', href: '/whitepaper' },
   ]
 
@@ -40,16 +39,6 @@ const Header = () => {
                 {item.name}
               </Link>
             ))}
-            <Link
-              to="/testnet"
-              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                isActive('/testnet')
-                  ? 'text-white bg-zinc-800'
-                  : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
-              }`}
-            >
-              Testnet
-            </Link>
             <a
               href="https://github.com/moltbunker"
               target="_blank"
@@ -107,17 +96,6 @@ const Header = () => {
                   {item.name}
                 </Link>
               ))}
-              <Link
-                to="/testnet"
-                onClick={() => setMobileMenuOpen(false)}
-                className={`block px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                  isActive('/testnet')
-                    ? 'text-white bg-zinc-800'
-                    : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
-                }`}
-              >
-                Testnet
-              </Link>
               <a
                 href="https://github.com/moltbunker"
                 target="_blank"

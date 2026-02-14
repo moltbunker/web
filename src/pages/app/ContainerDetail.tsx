@@ -1,39 +1,15 @@
-import { useState } from 'react'
+import { useState, lazy, Suspense } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, Square, Trash2, Copy, Check } from 'lucide-react'
 import StatusDot from '@/components/app/StatusDot'
 import TerminalLog from '@/components/app/TerminalLog'
 import { useContainer, useContainerLogs, useStopContainer, useDeleteContainer } from '@/hooks/useApi'
-import type { LogEntry } from '@/lib/api'
 
-const tabs = ['Overview', 'Logs', 'Metrics'] as const
-type Tab = (typeof tabs)[number]
+const Terminal = lazy(() => import('@/components/app/Terminal'))
 
-// Mock fallback data
-const mockInfo = {
-  id: '', image: 'nginx:1.25-alpine', status: 'running' as const, created_at: '2026-02-06T08:00:00Z',
-  encrypted: true, regions: ['americas', 'europe', 'asia_pacific'],
-}
-
-const mockLogs: LogEntry[] = [
-  { timestamp: '2026-02-10T12:00:01Z', level: 'info', message: 'Container started' },
-  { timestamp: '2026-02-10T12:00:02Z', level: 'info', message: 'Listening on 0.0.0.0:8080' },
-  { timestamp: '2026-02-10T12:01:15Z', level: 'info', message: 'Health check passed' },
-  { timestamp: '2026-02-10T12:05:32Z', level: 'info', message: 'Request processed in 12ms' },
-  { timestamp: '2026-02-10T12:10:00Z', level: 'info', message: 'Health check passed' },
-  { timestamp: '2026-02-10T12:15:44Z', level: 'warn', message: 'High memory usage: 78%' },
-  { timestamp: '2026-02-10T12:20:00Z', level: 'info', message: 'Health check passed' },
-]
-
-const mockMetrics = [
-  { label: 'CPU Usage', value: '23%', bar: 23, color: 'bg-blue-500' },
-  { label: 'Memory Usage', value: '78%', bar: 78, color: 'bg-amber-500' },
-  { label: 'Network In', value: '1.2 MB/s', bar: 40, color: 'bg-green-500' },
-  { label: 'Network Out', value: '0.8 MB/s', bar: 27, color: 'bg-green-500' },
-  { label: 'Disk I/O Read', value: '12 MB/s', bar: 30, color: 'bg-red-500' },
-  { label: 'Disk I/O Write', value: '4 MB/s', bar: 10, color: 'bg-red-500' },
-]
+const allTabs = ['Overview', 'Logs', 'Metrics', 'Terminal'] as const
+type Tab = (typeof allTabs)[number]
 
 export default function ContainerDetail() {
   const { id } = useParams()
@@ -41,13 +17,22 @@ export default function ContainerDetail() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [copiedId, setCopiedId] = useState(false)
 
-  const { data: container } = useContainer(id ?? '')
-  const { data: logs } = useContainerLogs(id ?? '')
+  const { data: container, isLoading } = useContainer(id ?? '')
+  const { data: logs = [] } = useContainerLogs(id ?? '')
   const stopMutation = useStopContainer()
   const deleteMutation = useDeleteContainer()
 
-  const info = container ?? { ...mockInfo, id: id ?? '' }
-  const logLines = logs ?? mockLogs
+  if (isLoading || !container) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="w-6 h-6 border-2 border-zinc-700 border-t-red-500 rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  const info = container
+  const logLines = logs
+  const tabs = info.status === 'running' ? allTabs : allTabs.filter(t => t !== 'Terminal')
 
   const copyId = () => {
     navigator.clipboard.writeText(id ?? '')
@@ -80,25 +65,29 @@ export default function ContainerDetail() {
           animate={{ opacity: 1, x: 0 }}
           className="flex gap-2"
         >
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => id && stopMutation.mutate(id)}
-            disabled={info.status === 'stopped' || stopMutation.isPending}
-            className="flex items-center gap-2 px-3 py-2 border border-zinc-700 text-zinc-300 hover:text-white hover:border-zinc-500 disabled:opacity-40 rounded-lg text-sm transition-all"
-          >
-            <Square className="w-4 h-4" />
-            Stop
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => setShowDeleteConfirm(true)}
-            className="flex items-center gap-2 px-3 py-2 border border-red-900 text-red-400 hover:text-red-300 hover:border-red-700 rounded-lg text-sm transition-all"
-          >
-            <Trash2 className="w-4 h-4" />
-            Delete
-          </motion.button>
+          {info.status === 'running' && (
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => id && stopMutation.mutate(id)}
+              disabled={stopMutation.isPending}
+              className="btn-action"
+            >
+              <Square className="w-4 h-4" />
+              {stopMutation.isPending ? 'Stopping...' : 'Stop'}
+            </motion.button>
+          )}
+          {info.status === 'stopped' && (
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setShowDeleteConfirm(true)}
+              className="btn-action"
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete
+            </motion.button>
+          )}
         </motion.div>
       </div>
 
@@ -187,30 +176,29 @@ export default function ContainerDetail() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="grid grid-cols-1 md:grid-cols-2 gap-3"
           >
-            {mockMetrics.map((metric, i) => (
-              <motion.div
-                key={metric.label}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className="bg-black border border-zinc-800 rounded-lg p-4 hover:border-zinc-700 transition-colors"
-              >
-                <div className="flex justify-between text-sm mb-3">
-                  <span className="text-zinc-400">{metric.label}</span>
-                  <span className="text-white font-mono">{metric.value}</span>
-                </div>
-                <div className="w-full bg-zinc-800 rounded-full h-2 overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${metric.bar}%` }}
-                    transition={{ duration: 0.8, delay: 0.2 + i * 0.05, ease: 'easeOut' }}
-                    className={`${metric.color} h-2 rounded-full`}
-                  />
-                </div>
-              </motion.div>
-            ))}
+            <div className="bg-black border border-zinc-800 rounded-lg px-4 py-12 text-center">
+              <p className="text-sm text-zinc-500">Container metrics coming soon.</p>
+              <p className="text-xs text-zinc-600 mt-1">Prometheus integration pending.</p>
+            </div>
+          </motion.div>
+        )}
+
+        {activeTab === 'Terminal' && (
+          <motion.div
+            key="terminal"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+          >
+            <Suspense fallback={
+              <div className="flex items-center justify-center h-64 text-zinc-500 text-sm">
+                <div className="w-5 h-5 border-2 border-zinc-700 border-t-red-500 rounded-full animate-spin mr-3" />
+                Loading terminal...
+              </div>
+            }>
+              <Terminal containerID={id ?? ''} />
+            </Suspense>
           </motion.div>
         )}
       </AnimatePresence>
@@ -239,7 +227,7 @@ export default function ContainerDetail() {
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
-                  className="flex-1 px-4 py-2.5 border border-zinc-700 text-zinc-300 hover:text-white rounded-lg text-sm transition-colors"
+                  className="flex-1 px-4 py-2.5 bg-zinc-900 hover:bg-zinc-800 active:bg-zinc-700 border border-zinc-700 text-zinc-300 hover:text-white rounded-lg text-sm transition-colors"
                 >
                   Cancel
                 </button>
@@ -249,7 +237,7 @@ export default function ContainerDetail() {
                     if (id) deleteMutation.mutate(id)
                     setShowDeleteConfirm(false)
                   }}
-                  className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors"
+                  className="btn-action flex-1 justify-center"
                 >
                   Delete
                 </motion.button>

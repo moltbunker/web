@@ -1,9 +1,8 @@
-import { useState } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search, Package } from 'lucide-react'
-import { presets, categoryLabels, type PresetCategory, type ImagePreset } from '@/lib/presets'
-
-const categories: PresetCategory[] = ['ai', 'infrastructure', 'database', 'dev']
+import { presets as defaultPresets, categoryLabels as defaultCategoryLabels, type ImagePreset } from '@/lib/presets'
+import { useCatalog } from '@/hooks/useApi'
 
 interface ImagePickerProps {
   selected: string // image string or preset id
@@ -11,11 +10,57 @@ interface ImagePickerProps {
 }
 
 export default function ImagePicker({ selected, onSelect }: ImagePickerProps) {
-  const [activeCategory, setActiveCategory] = useState<PresetCategory | 'custom'>('ai')
+  const [activeCategory, setActiveCategory] = useState<string>('')
   const [customImage, setCustomImage] = useState('')
+  const { data: catalog } = useCatalog()
+
+  // Derive categories and presets from catalog API, fall back to hardcoded
+  const { categories, categoryLabelMap, presetsForCategory } = useMemo(() => {
+    if (catalog?.categories?.length) {
+      const cats = catalog.categories
+        .slice()
+        .sort((a, b) => a.sort_order - b.sort_order)
+        .map(c => c.id)
+      const labelMap: Record<string, string> = {}
+      for (const c of catalog.categories) {
+        labelMap[c.id] = c.label
+      }
+      const presetsByCat: Record<string, ImagePreset[]> = {}
+      for (const cat of cats) {
+        presetsByCat[cat] = (catalog.presets || [])
+          .filter(p => p.category_id === cat)
+          .sort((a, b) => a.sort_order - b.sort_order)
+          .map(p => ({
+            id: p.id,
+            name: p.name,
+            image: p.image,
+            description: p.description,
+            category: p.category_id as ImagePreset['category'],
+            defaultTier: p.default_tier as ImagePreset['defaultTier'],
+            tags: p.tags || [],
+          }))
+      }
+      return { categories: cats, categoryLabelMap: labelMap, presetsForCategory: presetsByCat }
+    }
+
+    // Fallback to hardcoded
+    const cats = Object.keys(defaultCategoryLabels)
+    const presetsByCat: Record<string, ImagePreset[]> = {}
+    for (const cat of cats) {
+      presetsByCat[cat] = defaultPresets.filter(p => p.category === cat)
+    }
+    return { categories: cats, categoryLabelMap: defaultCategoryLabels as Record<string, string>, presetsForCategory: presetsByCat }
+  }, [catalog])
+
+  // Default to first category when categories load or change
+  useEffect(() => {
+    if (categories.length && (!activeCategory || !categories.includes(activeCategory))) {
+      setActiveCategory(categories[0])
+    }
+  }, [categories, activeCategory])
 
   const filtered = activeCategory !== 'custom'
-    ? presets.filter(p => p.category === activeCategory)
+    ? (presetsForCategory[activeCategory] || [])
     : []
 
   return (
@@ -39,7 +84,7 @@ export default function ImagePicker({ selected, onSelect }: ImagePickerProps) {
                 transition={{ type: 'spring', damping: 25, stiffness: 300 }}
               />
             )}
-            <span className="relative z-10">{categoryLabels[cat]}</span>
+            <span className="relative z-10">{categoryLabelMap[cat] ?? cat}</span>
           </button>
         ))}
         <button

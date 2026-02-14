@@ -34,20 +34,20 @@ export class AuthManager {
     signMessage: (args: { message: string }) => Promise<string>,
   ): Promise<void> {
     // Step 1: Get challenge
-    const { challenge } = await this.client.authChallenge(address)
+    const { message } = await this.client.authChallenge(address)
 
     // Step 2: Sign with wallet
-    const signature = await signMessage({ message: challenge })
+    const signature = await signMessage({ message })
 
     // Step 3: Verify and get token
-    const { token, expires_at } = await this.client.authVerify({
+    const { access_token, expires_in } = await this.client.authVerify({
       address,
-      message: challenge,
+      message,
       signature,
     })
 
     // Step 4: Store token
-    this.client.setToken(token, expires_at)
+    this.client.setToken(access_token, expires_in)
     this.scheduleRefresh(address, signMessage)
     this.emitState(address)
   }

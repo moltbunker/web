@@ -36,13 +36,22 @@ export default defineConfig({
   publicDir: 'public',
   server: {
     proxy: {
-      '/v1': {
-        target: 'http://localhost:8080',
+      '/v1/exec/ws': {
+        target: 'https://api.moltbunker.com',
         changeOrigin: true,
-      },
-      '/ws': {
-        target: 'ws://localhost:8080',
+        secure: true,
         ws: true,
+      },
+      '/v1/ws': {
+        target: 'https://api.moltbunker.com',
+        changeOrigin: true,
+        secure: true,
+        ws: true,
+      },
+      '/v1': {
+        target: 'https://api.moltbunker.com',
+        changeOrigin: true,
+        secure: true,
       },
     },
   },
