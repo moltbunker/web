@@ -238,3 +238,44 @@ tr:hover td {
   box-shadow: 0 0 25px rgba(239, 68, 68, 0.12) !important;
   background: rgba(0, 0, 0, 0.95) !important;
 }
+
+/* ── Action button — matches Connect Wallet style ── */
+.btn-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.5rem;
+  background: rgba(0, 0, 0, 0.85);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 0.75rem;
+  color: #f87171;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.05);
+  cursor: pointer;
+}
+
+.btn-action:hover {
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #fca5a5;
+  box-shadow: 0 0 25px rgba(239, 68, 68, 0.12);
+  background: rgba(0, 0, 0, 0.95);
+}
+
+.btn-action:active {
+  border-color: rgba(239, 68, 68, 0.6);
+  color: #fecaca;
+  background: rgba(0, 0, 0, 1);
+}
+
+.btn-action:disabled {
+  border-color: rgba(63, 63, 70, 0.5);
+  color: #52525b;
+  background: rgba(0, 0, 0, 0.6);
+  box-shadow: none;
+  cursor: not-allowed;
+}

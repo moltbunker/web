@@ -28,6 +28,7 @@ export function useAuth() {
 // ─── Query Keys ──────────────────────────────────────────────────────────────
 
 const keys = {
+  catalog: ['catalog'] as const,
   status: ['status'] as const,
   balance: ['balance'] as const,
   threat: ['threat'] as const,
@@ -45,6 +46,15 @@ const keys = {
 }
 
 // ─── Query Hooks ─────────────────────────────────────────────────────────────
+
+export function useCatalog() {
+  const { client } = useApiClient()
+  return useQuery({
+    queryKey: keys.catalog,
+    queryFn: () => client.getCatalog(),
+    staleTime: 5 * 60_000,
+  })
+}
 
 export function useStatus() {
   const { client, auth } = useApiClient()
@@ -72,7 +82,7 @@ export function useThreat() {
     queryKey: keys.threat,
     queryFn: () => client.getThreat(),
     enabled: auth.isAuthenticated,
-    refetchInterval: 15_000,
+    refetchInterval: 30_000,
   })
 }
 
@@ -82,7 +92,7 @@ export function useContainers() {
     queryKey: keys.containers,
     queryFn: () => client.listContainers(),
     enabled: auth.isAuthenticated,
-    refetchInterval: 10_000,
+    refetchInterval: 30_000,
   })
 }
 
@@ -112,7 +122,7 @@ export function useDeployments() {
     queryKey: keys.deployments,
     queryFn: () => client.listDeployments(),
     enabled: auth.isAuthenticated,
-    refetchInterval: 10_000,
+    refetchInterval: 30_000,
   })
 }
 

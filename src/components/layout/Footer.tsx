@@ -82,8 +82,9 @@ const Footer = () => {
             <p className="text-xs text-zinc-600">
               © {currentYear} MoltBunker. Built on Base network.
             </p>
-            <p className="text-xs text-zinc-600">
-              Launch: February 13, 2026
+            <p className="text-xs text-zinc-600 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Live on Base Sepolia
             </p>
           </div>
         </div>

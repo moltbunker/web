@@ -4,12 +4,18 @@ import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import Home from '@/pages/Home'
 import Docs from '@/pages/Docs'
-import Roadmap from '@/pages/roadmap'
-import Testnet from '@/pages/Testnet'
 import WhitepaperPage from '@/pages/Whitepaper'
 import NotFound from '@/pages/NotFound'
 
 const AppLayout = lazy(() => import('@/components/app/AppLayout'))
+const Overview = lazy(() => import('@/pages/app/Overview'))
+const Deploy = lazy(() => import('@/pages/app/Deploy'))
+const Containers = lazy(() => import('@/pages/app/Containers'))
+const ContainerDetail = lazy(() => import('@/pages/app/ContainerDetail'))
+const Nodes = lazy(() => import('@/pages/app/Nodes'))
+const Billing = lazy(() => import('@/pages/app/Billing'))
+const Provider = lazy(() => import('@/pages/app/Provider'))
+const Settings = lazy(() => import('@/pages/app/Settings'))
 
 function LoadingSpinner() {
   return (
@@ -32,10 +38,17 @@ function AppShell() {
             <Route path="/" element={<Home />} />
             <Route path="/docs" element={<Docs />} />
             <Route path="/docs/:slug" element={<Docs />} />
-            <Route path="/roadmap" element={<Roadmap />} />
-            <Route path="/testnet" element={<Testnet />} />
             <Route path="/whitepaper" element={<WhitepaperPage />} />
-            <Route path="/app" element={<AppLayout />} />
+            <Route path="/app" element={<AppLayout />}>
+              <Route index element={<Overview />} />
+              <Route path="deploy" element={<Deploy />} />
+              <Route path="containers" element={<Containers />} />
+              <Route path="containers/:id" element={<ContainerDetail />} />
+              <Route path="nodes" element={<Nodes />} />
+              <Route path="billing" element={<Billing />} />
+              <Route path="provider" element={<Provider />} />
+              <Route path="settings" element={<Settings />} />
+            </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
