@@ -15,12 +15,32 @@ interface TerminalLogProps {
 }
 
 const levelColors: Record<string, string> = {
-  info: 'text-zinc-300',
+  info: 'text-zinc-400',
   warn: 'text-amber-400',
   warning: 'text-amber-400',
   error: 'text-red-400',
-  debug: 'text-zinc-500',
+  debug: 'text-zinc-600',
   fatal: 'text-red-500 font-bold',
+}
+
+const levelBadge: Record<string, string> = {
+  info: 'text-blue-400/70',
+  warn: 'text-amber-400/80',
+  warning: 'text-amber-400/80',
+  error: 'text-red-400/90',
+  debug: 'text-zinc-600',
+  fatal: 'text-red-500',
+}
+
+/** Format ISO timestamp to short HH:MM:SS */
+function shortTime(iso: string): string {
+  if (!iso) return ''
+  try {
+    const d = new Date(iso)
+    return d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+  } catch {
+    return iso
+  }
 }
 
 export default function TerminalLog({
@@ -58,30 +78,36 @@ export default function TerminalLog({
       {/* Log content */}
       <div
         ref={scrollRef}
-        className="p-4 font-mono text-xs space-y-0.5 overflow-y-auto"
+        className="p-4 font-mono text-xs leading-5 overflow-y-auto"
         style={{ maxHeight }}
       >
         {lines.length === 0 ? (
           <div className="text-zinc-600">Waiting for logs...</div>
         ) : (
           lines.map((line, i) => {
-            const color = levelColors[line.level?.toLowerCase() ?? ''] ?? 'text-zinc-300'
+            const lvl = line.level?.toLowerCase() ?? ''
+            const msgColor = levelColors[lvl] ?? 'text-zinc-300'
+            const badge = levelBadge[lvl] ?? 'text-zinc-500'
             return (
-              <div key={i} className={color}>
+              <div key={i} className="flex gap-0 hover:bg-zinc-900/40 -mx-1 px-1 rounded">
                 {line.timestamp && (
-                  <span className="text-zinc-600">{line.timestamp} </span>
+                  <span className="text-zinc-600 shrink-0 w-[70px] select-none">
+                    {shortTime(line.timestamp)}
+                  </span>
                 )}
                 {line.level && (
-                  <span className={`${color} font-medium`}>[{line.level}] </span>
+                  <span className={`${badge} shrink-0 w-[42px] text-right mr-2 select-none`}>
+                    {line.level}
+                  </span>
                 )}
-                <span>{line.message}</span>
+                <span className={msgColor}>{line.message}</span>
               </div>
             )
           })
         )}
         {/* Blinking cursor */}
         <motion.span
-          className="inline-block w-2 h-3.5 bg-zinc-500 align-middle"
+          className="inline-block w-2 h-3.5 bg-zinc-500 align-middle mt-1"
           animate={{ opacity: [1, 0] }}
           transition={{ duration: 0.8, repeat: Infinity }}
         />

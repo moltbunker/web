@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion'
-import { FileCode, Shield, Zap } from 'lucide-react'
+import { FileCode, Zap, Coins, Lock, Wallet, DollarSign, Users, Star, Cpu, Clock } from 'lucide-react'
 import {
   CyberRain,
   CountdownBlock,
@@ -41,7 +42,7 @@ const calculateTimeLeft = (): TimeLeft => {
 const Roadmap = () => {
   const [timeLeft, setTimeLeft] = useState<TimeLeft>(calculateTimeLeft())
   const [prevTimeLeft, setPrevTimeLeft] = useState<TimeLeft>(calculateTimeLeft())
-  const [isLaunched, setIsLaunched] = useState(false)
+  const [isLaunched, setIsLaunched] = useState(LAUNCH_DATE.getTime() <= Date.now())
   const [isLogoHovered, setIsLogoHovered] = useState(false)
 
   // Mouse tracking for logo animation
@@ -215,10 +216,34 @@ const Roadmap = () => {
             animate={{ opacity: 1, scale: 1 }}
             className="text-center mb-20"
           >
-            <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-emerald-500/10 border border-emerald-500/30">
-              <Zap className="w-5 h-5 text-emerald-400" />
-              <span className="text-lg font-semibold text-emerald-400" style={{ fontFamily: 'var(--font-mono)' }}>MAINNET LIVE</span>
-            </div>
+            <Link to="/docs/smart-contracts">
+              <motion.div
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-emerald-500/10 border border-emerald-500/30 cursor-pointer"
+                whileHover={{
+                  scale: 1.05,
+                  boxShadow: '0 0 30px rgba(16, 185, 129, 0.3), 0 0 60px rgba(16, 185, 129, 0.15)',
+                  borderColor: 'rgba(16, 185, 129, 0.6)',
+                }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+              >
+                <motion.div
+                  animate={{ rotate: [0, -10, 10, -10, 0] }}
+                  transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 3 }}
+                >
+                  <Zap className="w-5 h-5 text-emerald-400" />
+                </motion.div>
+                <span className="text-lg font-semibold text-emerald-400" style={{ fontFamily: 'var(--font-mono)' }}>TESTNET LIVE</span>
+                <motion.span
+                  className="w-2 h-2 rounded-full bg-emerald-400"
+                  animate={{ opacity: [1, 0.3, 1], scale: [1, 0.8, 1] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                />
+              </motion.div>
+            </Link>
+            <p className="mt-3 text-sm text-zinc-400" style={{ fontFamily: 'var(--font-mono)' }}>
+              Base Sepolia &middot; Chain ID 84532 &middot; 8 contracts deployed &amp; verified
+            </p>
           </motion.div>
         )}
 
@@ -249,27 +274,65 @@ const Roadmap = () => {
         >
           <h2 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
             <FileCode className="w-5 h-5 text-zinc-400" />
-            Contract Addresses
+            Contract Addresses — Base Sepolia
           </h2>
 
           <div className="grid gap-4">
             <ContractCard
-              title="BUNKER Token"
-              address="0xCe16Ef461d88256D2D80DFD31F0D9E7a9fD59213"
+              title="BunkerToken"
+              address="0x4cc3F5C0d2Ecb4118e214980906eFe5c880a6ceA"
               status="live"
-              icon={Shield}
+              icon={Coins}
+              network="sepolia"
             />
             <ContractCard
-              title="Payment Contract"
-              address="Deploying February 13, 2026..."
-              status="coming"
-              icon={Zap}
+              title="BunkerStaking"
+              address="0xDC76d972a827D2a19867EF9aBD335014d5Cf7D6a"
+              status="live"
+              icon={Lock}
+              network="sepolia"
             />
             <ContractCard
-              title="Runtime Registry"
-              address="Deploying February 13, 2026..."
-              status="coming"
-              icon={FileCode}
+              title="BunkerEscrow"
+              address="0xBAdaB53a9E98D904E3dfcDb728D510c69DAeE9B4"
+              status="live"
+              icon={Wallet}
+              network="sepolia"
+            />
+            <ContractCard
+              title="BunkerPricing"
+              address="0x5A61b05F289344202433ccDf44aFc611d9E3dA47"
+              status="live"
+              icon={DollarSign}
+              network="sepolia"
+            />
+            <ContractCard
+              title="BunkerDelegation"
+              address="0x071252B4f4bC80cccEccDe1A644229EE2dAf09F5"
+              status="live"
+              icon={Users}
+              network="sepolia"
+            />
+            <ContractCard
+              title="BunkerReputation"
+              address="0x55721fC66B30Fe26a0820CfDeffC0815135678Ed"
+              status="live"
+              icon={Star}
+              network="sepolia"
+            />
+            <ContractCard
+              title="BunkerVerification"
+              address="0x9aA9Fc961da51dcFfF0232883631f7147CaBFBCD"
+              status="live"
+              icon={Cpu}
+              network="sepolia"
+            />
+            <ContractCard
+              title="BunkerTimelock"
+              address="0xcD8af28808749CD4B55a970f14DA250C8EAEd3C9"
+              status="live"
+              icon={Clock}
+              network="sepolia"
             />
           </div>
         </motion.div>
@@ -286,23 +349,31 @@ const Roadmap = () => {
           </h3>
           <div className="grid sm:grid-cols-2 gap-4 text-sm">
             <div className="flex justify-between">
-              <span className="text-zinc-500">Network</span>
-              <span className="text-white font-medium">Base (Ethereum L2)</span>
+              <span className="text-zinc-500">Testnet</span>
+              <span className="text-emerald-400 font-medium">Base Sepolia</span>
             </div>
             <div className="flex justify-between">
               <span className="text-zinc-500">Chain ID</span>
-              <span className="text-white font-medium" style={{ fontFamily: 'var(--font-mono)' }}>8453</span>
+              <span className="text-white font-medium" style={{ fontFamily: 'var(--font-mono)' }}>84532</span>
             </div>
             <div className="flex justify-between">
               <span className="text-zinc-500">Block Explorer</span>
               <a
-                href="https://basescan.org"
+                href="https://sepolia.basescan.org"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-red-400 hover:text-red-300 transition-colors"
               >
-                basescan.org
+                sepolia.basescan.org
               </a>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-zinc-500">Contracts</span>
+              <span className="text-emerald-400 font-medium">8 deployed &amp; verified</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-zinc-500">Mainnet Token</span>
+              <span className="text-white font-medium">Base (Chain ID 8453)</span>
             </div>
             <div className="flex justify-between">
               <span className="text-zinc-500">DEX</span>

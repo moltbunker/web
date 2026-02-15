@@ -4,19 +4,20 @@ import StatusCard from './StatusCard'
 
 const components = [
   { component: 'Core Runtime', progress: 100 },
+  { component: 'Confidential Containers (SEV-SNP)', progress: 100 },
   { component: 'P2P Network', progress: 97 },
   { component: 'Threat Detection', progress: 94 },
   { component: 'Self-Cloning', progress: 91 },
   { component: 'Snapshot System', progress: 88 },
-  { component: 'Tor Integration', progress: 96 },
-  { component: 'Payment Contracts', progress: 0 },
-  { component: 'Python SDK', progress: 89 },
-  { component: 'CLI Commands', progress: 93 },
-  { component: 'HTTP API', progress: 87 },
+  { component: 'Tor Integration', progress: 100 },
+  { component: 'Payment Contracts', progress: 100 },
+  { component: 'Python SDK', progress: 100 },
+  { component: 'CLI Commands', progress: 100 },
+  { component: 'HTTP API', progress: 100 },
   { component: 'Provider Mode', progress: 85 },
-  { component: 'Requester Mode', progress: 82 },
-  { component: 'Testnet', progress: 76 },
-  { component: 'Mainnet', progress: 0 },
+  { component: 'Requester Mode', progress: 100 },
+  { component: 'Testnet', progress: 100 },
+  { component: 'Mainnet', progress: 85 },
 ]
 
 const getStatus = (progress: number): 'complete' | 'in-progress' | 'pending' => {

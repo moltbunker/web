@@ -9,6 +9,9 @@ const WS_PONG = 0x04
 const WS_CLOSE = 0x05
 const WS_ERROR = 0x06
 
+/** Default idle timeout in seconds before auto-disconnect. */
+export const DEFAULT_IDLE_TIMEOUT = 30
+
 export type ExecConnectionStatus =
   | 'disconnected'
   | 'connecting'
@@ -33,16 +36,23 @@ export interface ExecConnectionCallbacks {
  * - WebSocket connection with auth params
  * - Binary frame protocol (data, resize, ping/pong, close, error)
  * - Auto ping/pong keepalive
+ * - Idle timeout with optional keep-alive override
  * - Graceful close and cleanup
  */
 export function useExecConnection(callbacks: ExecConnectionCallbacks) {
   const { client } = useApiClient()
   const [status, setStatus] = useState<ExecConnectionStatus>('disconnected')
+  const [keepAlive, setKeepAlive] = useState(false)
+  const [idleSeconds, setIdleSeconds] = useState(0)
 
   const wsRef = useRef<WebSocket | null>(null)
   const pingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const idleTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const lastActivityRef = useRef<number>(Date.now())
+  const keepAliveRef = useRef(keepAlive)
   const callbacksRef = useRef(callbacks)
   callbacksRef.current = callbacks
+  keepAliveRef.current = keepAlive
 
   const updateStatus = useCallback(
     (newStatus: ExecConnectionStatus) => {
@@ -51,6 +61,12 @@ export function useExecConnection(callbacks: ExecConnectionCallbacks) {
     },
     [],
   )
+
+  /** Reset the idle timer (called on user input). */
+  const touchActivity = useCallback(() => {
+    lastActivityRef.current = Date.now()
+    setIdleSeconds(0)
+  }, [])
 
   /** Connect to the exec WebSocket endpoint. */
   const connect = useCallback(
@@ -62,6 +78,7 @@ export function useExecConnection(callbacks: ExecConnectionCallbacks) {
       }
 
       updateStatus('connecting')
+      touchActivity()
 
       const url = client.execWebSocketUrl(nonce, signature, cols, rows)
       const ws = new WebSocket(url)
@@ -70,6 +87,7 @@ export function useExecConnection(callbacks: ExecConnectionCallbacks) {
 
       ws.onopen = () => {
         updateStatus('connected')
+        touchActivity()
 
         // Start keepalive pings every 25 seconds
         pingIntervalRef.current = setInterval(() => {
@@ -77,6 +95,25 @@ export function useExecConnection(callbacks: ExecConnectionCallbacks) {
             ws.send(new Uint8Array([WS_PING]))
           }
         }, 25_000)
+
+        // Start idle tracker (ticks every second)
+        idleTimerRef.current = setInterval(() => {
+          const elapsed = Math.floor(
+            (Date.now() - lastActivityRef.current) / 1000,
+          )
+          setIdleSeconds(elapsed)
+
+          if (
+            !keepAliveRef.current &&
+            elapsed >= DEFAULT_IDLE_TIMEOUT &&
+            ws.readyState === WebSocket.OPEN
+          ) {
+            ws.send(new Uint8Array([WS_CLOSE]))
+            setTimeout(() => ws.close(), 500)
+            setStatus('closed')
+            callbacksRef.current.onClose?.('idle_timeout')
+          }
+        }, 1000)
       }
 
       ws.onmessage = (event) => {
@@ -122,19 +159,24 @@ export function useExecConnection(callbacks: ExecConnectionCallbacks) {
         callbacksRef.current.onError?.('WebSocket connection failed')
       }
     },
-    [client, updateStatus, status],
+    [client, updateStatus, status, touchActivity],
   )
 
   /** Send terminal input data to the container. */
-  const sendData = useCallback((data: Uint8Array) => {
-    const ws = wsRef.current
-    if (!ws || ws.readyState !== WebSocket.OPEN) return
+  const sendData = useCallback(
+    (data: Uint8Array) => {
+      const ws = wsRef.current
+      if (!ws || ws.readyState !== WebSocket.OPEN) return
 
-    const frame = new Uint8Array(1 + data.length)
-    frame[0] = WS_DATA
-    frame.set(data, 1)
-    ws.send(frame)
-  }, [])
+      touchActivity()
+
+      const frame = new Uint8Array(1 + data.length)
+      frame[0] = WS_DATA
+      frame.set(data, 1)
+      ws.send(frame)
+    },
+    [touchActivity],
+  )
 
   /** Send a terminal resize event. */
   const sendResize = useCallback((cols: number, rows: number) => {
@@ -167,6 +209,11 @@ export function useExecConnection(callbacks: ExecConnectionCallbacks) {
       clearInterval(pingIntervalRef.current)
       pingIntervalRef.current = null
     }
+    if (idleTimerRef.current) {
+      clearInterval(idleTimerRef.current)
+      idleTimerRef.current = null
+    }
+    setIdleSeconds(0)
     wsRef.current = null
   }, [])
 
@@ -179,6 +226,9 @@ export function useExecConnection(callbacks: ExecConnectionCallbacks) {
       if (pingIntervalRef.current) {
         clearInterval(pingIntervalRef.current)
       }
+      if (idleTimerRef.current) {
+        clearInterval(idleTimerRef.current)
+      }
     }
   }, [])
 
@@ -188,5 +238,8 @@ export function useExecConnection(callbacks: ExecConnectionCallbacks) {
     sendData,
     sendResize,
     disconnect,
+    keepAlive,
+    setKeepAlive,
+    idleSeconds,
   }
 }

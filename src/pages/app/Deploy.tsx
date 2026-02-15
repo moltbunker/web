@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Rocket, ArrowRight, ArrowLeft, CheckCircle, Globe, Clock, Loader2, Cpu, HardDrive, MemoryStick, Zap, ShieldCheck, ExternalLink, X, Wallet, Lock } from 'lucide-react'
+import { Rocket, ArrowRight, ArrowLeft, CheckCircle, Globe, Clock, Loader2, Cpu, HardDrive, MemoryStick, Zap, ShieldCheck, ExternalLink, X, Wallet, Lock, AlertCircle, RotateCcw } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { parseUnits } from 'viem'
 import { useConfig, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
@@ -144,6 +144,12 @@ export default function Deploy() {
   const [deployError, setDeployError] = useState<string | null>(null)
   const [showConfirm, setShowConfirm] = useState(false)
   const [showNoTokens, setShowNoTokens] = useState(false)
+  const [deployLogs, setDeployLogs] = useState<{ level: string; message: string }[]>([])
+  const deployStartedRef = useRef(false)
+
+  const pushLog = useCallback((level: string, message: string) => {
+    setDeployLogs(prev => [...prev, { level, message }])
+  }, [])
 
   const deploy = useDeploy()
   const wagmiConfig = useConfig()
@@ -199,22 +205,37 @@ export default function Deploy() {
   const handleDeploy = async () => {
     if (!escrowAddress) return
     setDeployError(null)
+    setDeployResult(null)
+    setDeployLogs([])
+    deployStartedRef.current = true
+
+    // Go to step 4 immediately to show progress
+    setStep(4)
+
+    pushLog('info', `Image: ${preset?.name ?? image}`)
+    pushLog('info', `Tier: ${tier.name} (${tier.cpu}, ${tier.mem})`)
+    pushLog('info', `Cost: ${formatCost(totalCost)} BUNKER for ${duration}h`)
 
     try {
-      // Step 1: Create escrow on-chain (user's wallet pays)
+      // Phase 1: Create escrow on-chain
       setDeployPhase('creating_escrow')
+      pushLog('info', 'Creating escrow reservation...')
+      pushLog('info', 'Waiting for wallet confirmation...')
       const escrowHash = await writeContractAsync({
         address: escrowAddress,
         abi: BUNKER_ESCROW_ABI,
         functionName: 'createReservation',
         args: [costWei, durationSecs],
       })
+      pushLog('info', `Escrow TX submitted: ${escrowHash.slice(0, 18)}...`)
 
-      // Step 2: Wait for TX confirmation and parse reservationId
+      // Phase 2: Wait for TX confirmation and parse reservationId
       setDeployPhase('confirming_escrow')
+      pushLog('info', 'Confirming escrow on-chain...')
       const receipt = await waitForTxReceipt(wagmiConfig, { hash: escrowHash })
+      pushLog('info', `Escrow confirmed in block ${receipt.blockNumber}`)
 
-      // Parse ReservationCreated event: topic[0]=event sig, topic[1]=indexed reservationId
+      // Parse ReservationCreated event
       const escrowLog = receipt.logs.find(
         log => log.address.toLowerCase() === escrowAddress.toLowerCase() && log.topics.length > 1
       )
@@ -222,9 +243,12 @@ export default function Deploy() {
         throw new Error('Failed to parse reservation ID from transaction receipt')
       }
       const reservationId = BigInt(escrowLog.topics[1]!).toString()
+      pushLog('info', `Reservation ID: ${reservationId}`)
 
-      // Step 3: Send deploy request to API with the reservation ID
+      // Phase 3: Send deploy request to API
       setDeployPhase('deploying')
+      pushLog('info', 'Sending deploy request to network...')
+      pushLog('info', 'Selecting provider nodes...')
       const result = await deploy.mutateAsync({
         image,
         tier: tier.id as DeployRequest['tier'],
@@ -235,12 +259,20 @@ export default function Deploy() {
         reservation_id: reservationId,
       })
 
+      pushLog('info', `Container ${result.container_id} created`)
+      pushLog('info', `Regions: ${result.regions.join(', ')}`)
+      pushLog('info', `Replicas: ${result.replica_count}x`)
+      pushLog('info', 'Pulling image via IPFS...')
+      pushLog('info', 'Creating encrypted container...')
+      pushLog('info', 'Replication in progress...')
+
       setDeployResult(result)
       setDeployPhase('idle')
-      setStep(4)
     } catch (err) {
+      const message = err instanceof Error ? err.message : 'Deployment failed'
       setDeployPhase('idle')
-      setDeployError(err instanceof Error ? err.message : 'Deployment failed')
+      setDeployError(message)
+      pushLog('error', `Deployment failed: ${message}`)
     }
   }
 
@@ -252,7 +284,6 @@ export default function Deploy() {
 
   const formatCost = (n: number) => n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M` : n.toLocaleString()
 
-  const isBusy = deployPhase !== 'idle'
   const phaseLabel = {
     idle: '',
     approving: 'Approving...',
@@ -519,12 +550,12 @@ export default function Deploy() {
 
             {/* Actions */}
             <div className="flex justify-between pt-1">
-              <button onClick={() => setStep(2)} disabled={isBusy} className="flex items-center gap-2 px-4 py-2.5 text-zinc-400 hover:text-white text-sm transition-colors disabled:opacity-50">
+              <button onClick={() => setStep(2)} className="flex items-center gap-2 px-4 py-2.5 text-zinc-400 hover:text-white text-sm transition-colors">
                 <ArrowLeft className="w-4 h-4" /> Back
               </button>
               <motion.button
-                whileHover={!isBusy && !needsApproval ? { scale: 1.02 } : {}}
-                whileTap={!isBusy && !needsApproval ? { scale: 0.98 } : {}}
+                whileHover={!needsApproval ? { scale: 1.02 } : {}}
+                whileTap={!needsApproval ? { scale: 0.98 } : {}}
                 onClick={() => {
                   const bal = tokenBalance as bigint | undefined
                   if (!bal || bal < costWei) {
@@ -533,184 +564,18 @@ export default function Deploy() {
                   }
                   setShowConfirm(true)
                 }}
-                disabled={isBusy || needsApproval}
+                disabled={needsApproval}
                 className="btn-action"
               >
-                {isBusy ? (
-                  <><Loader2 className="w-4 h-4 animate-spin" /> {phaseLabel}</>
-                ) : (
-                  <><Rocket className="w-4 h-4" /> Deploy Container</>
-                )}
+                <Rocket className="w-4 h-4" /> Deploy Container
               </motion.button>
             </div>
 
-            {(deployError || deploy.isError) && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-red-500/5 border border-red-500/20 rounded-lg px-4 py-3 text-sm text-red-400"
-              >
-                {deployError ?? deploy.error?.message ?? 'Deployment failed. Please try again.'}
-              </motion.div>
-            )}
-
-            {/* Confirmation modal */}
-            <AnimatePresence>
-              {showConfirm && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
-                  onClick={() => !isBusy && setShowConfirm(false)}
-                >
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                    transition={{ duration: 0.15 }}
-                    onClick={e => e.stopPropagation()}
-                    className="w-full max-w-md mx-4 bg-zinc-900 border border-zinc-700 rounded-2xl shadow-2xl overflow-hidden"
-                  >
-                    {/* Header */}
-                    <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800">
-                      <h3 className="text-base font-semibold text-white">Confirm Deployment</h3>
-                      <button
-                        onClick={() => !isBusy && setShowConfirm(false)}
-                        disabled={isBusy}
-                        className="p-1 text-zinc-500 hover:text-white transition-colors disabled:opacity-50"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-
-                    {/* Body */}
-                    <div className="px-5 py-4 space-y-4">
-                      <p className="text-sm text-zinc-400">
-                        Clicking confirm will open your wallet to create an escrow payment on the Base network.
-                      </p>
-
-                      {/* Transaction details */}
-                      <div className="bg-black/50 border border-zinc-800 rounded-xl p-4 space-y-2.5">
-                        <div className="flex items-center gap-2 mb-3">
-                          <Wallet className="w-4 h-4 text-red-400" />
-                          <span className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Transaction Details</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-zinc-500">Action</span>
-                          <span className="text-zinc-300">Create Escrow</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-zinc-500">Contract</span>
-                          <span className="text-zinc-300 font-mono text-xs">BunkerEscrow</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-zinc-500">Amount</span>
-                          <span className="text-red-400 font-mono font-semibold">{formatCost(totalCost)} BUNKER</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-zinc-500">Duration</span>
-                          <span className="text-zinc-300">{duration}h{duration >= 24 ? ` (${Math.round(duration / 24)}d)` : ''}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-zinc-500">Network</span>
-                          <span className="text-zinc-300">Base Sepolia</span>
-                        </div>
-                      </div>
-
-                      {/* Info note */}
-                      <div className="flex items-start gap-2.5 text-xs text-zinc-500">
-                        <Lock className="w-3.5 h-3.5 shrink-0 mt-0.5 text-zinc-600" />
-                        <span>
-                          Tokens are locked in the escrow contract and paid to providers over the deployment duration.
-                          Unused tokens are refunded if you stop early.
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Footer */}
-                    <div className="flex gap-3 px-5 py-4 border-t border-zinc-800">
-                      <button
-                        onClick={() => setShowConfirm(false)}
-                        disabled={isBusy}
-                        className="flex-1 px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-white bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors disabled:opacity-50"
-                      >
-                        Cancel
-                      </button>
-                      <motion.button
-                        whileHover={!isBusy ? { scale: 1.02 } : {}}
-                        whileTap={!isBusy ? { scale: 0.98 } : {}}
-                        onClick={() => { setShowConfirm(false); handleDeploy() }}
-                        disabled={isBusy}
-                        className="btn-action flex-1 justify-center"
-                      >
-                        {isBusy ? (
-                          <><Loader2 className="w-4 h-4 animate-spin" /> {phaseLabel}</>
-                        ) : (
-                          <><Wallet className="w-4 h-4" /> Confirm & Sign</>
-                        )}
-                      </motion.button>
-                    </div>
-                  </motion.div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Insufficient BUNKER balance dialog */}
-            <AnimatePresence>
-              {showNoTokens && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
-                  onClick={() => setShowNoTokens(false)}
-                >
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                    transition={{ duration: 0.15 }}
-                    onClick={e => e.stopPropagation()}
-                    className="w-full max-w-sm mx-4 bg-zinc-900 border border-zinc-700 rounded-2xl shadow-2xl overflow-hidden"
-                  >
-                    <div className="px-5 py-5 space-y-4 text-center">
-                      <div className="w-14 h-14 mx-auto rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
-                        <Wallet className="w-7 h-7 text-red-400" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-white mb-1">Insufficient BUNKER Balance</h3>
-                        <p className="text-sm text-zinc-400">
-                          You need <span className="text-red-400 font-mono font-semibold">{formatCost(totalCost)}</span> BUNKER to deploy this container.
-                        </p>
-                      </div>
-                      <div className="bg-black/50 border border-zinc-800 rounded-xl px-4 py-3">
-                        <p className="text-xs text-zinc-500 mb-1">Your balance</p>
-                        <p className="text-sm font-mono text-white">
-                          {tokenBalance ? formatCost(Number((tokenBalance as bigint) / BigInt(10 ** 18))) : '0'} BUNKER
-                        </p>
-                      </div>
-                      <p className="text-xs text-zinc-500">
-                        Base Sepolia testnet tokens will be delivered to testers soon. Stay tuned.
-                      </p>
-                    </div>
-                    <div className="px-5 py-4 border-t border-zinc-800">
-                      <button
-                        onClick={() => setShowNoTokens(false)}
-                        className="w-full px-4 py-2.5 text-sm font-medium text-zinc-300 hover:text-white bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors"
-                      >
-                        Got it
-                      </button>
-                    </div>
-                  </motion.div>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </motion.div>
         )}
 
-        {/* ─── Step 4: Confirmation ─── */}
-        {step === 4 && deployResult && (
+        {/* ─── Step 4: Deploy Progress / Result ─── */}
+        {step === 4 && (
           <motion.div
             key="step4"
             initial={{ opacity: 0, scale: 0.96 }}
@@ -718,43 +583,307 @@ export default function Deploy() {
             transition={{ duration: 0.3 }}
             className="space-y-5"
           >
+            {/* Header — changes based on state */}
             <div className="text-center py-2">
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', damping: 15, delay: 0.1 }}
-                className="w-14 h-14 rounded-full bg-green-500/10 border border-green-500/30 flex items-center justify-center mx-auto mb-4"
-              >
-                <CheckCircle className="w-7 h-7 text-green-400" />
-              </motion.div>
-              <h2 className="text-xl font-bold text-white">Deployment Initiated</h2>
-              <p className="text-sm text-zinc-500 mt-1">Your container is being deployed to {deployResult.replica_count} nodes</p>
+              {deployError ? (
+                <>
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: 'spring', damping: 15, delay: 0.1 }}
+                    className="w-14 h-14 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center mx-auto mb-4"
+                  >
+                    <AlertCircle className="w-7 h-7 text-red-400" />
+                  </motion.div>
+                  <h2 className="text-xl font-bold text-white">Deployment Failed</h2>
+                  <p className="text-sm text-zinc-500 mt-1">Something went wrong during deployment</p>
+                </>
+              ) : deployResult ? (
+                <>
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: 'spring', damping: 15, delay: 0.1 }}
+                    className="w-14 h-14 rounded-full bg-green-500/10 border border-green-500/30 flex items-center justify-center mx-auto mb-4"
+                  >
+                    <CheckCircle className="w-7 h-7 text-green-400" />
+                  </motion.div>
+                  <h2 className="text-xl font-bold text-white">Deployment Initiated</h2>
+                  <p className="text-sm text-zinc-500 mt-1">Your container is being deployed to {deployResult.replica_count} nodes</p>
+                </>
+              ) : (
+                <>
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: 'spring', damping: 15, delay: 0.1 }}
+                    className="w-14 h-14 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center mx-auto mb-4"
+                  >
+                    <Loader2 className="w-7 h-7 text-red-400 animate-spin" />
+                  </motion.div>
+                  <h2 className="text-xl font-bold text-white">Deploying...</h2>
+                  <p className="text-sm text-zinc-500 mt-1">{phaseLabel || 'Preparing deployment...'}</p>
+                </>
+              )}
             </div>
 
+            {/* Phase progress bar — shown during active deployment */}
+            {!deployResult && !deployError && (
+              <div className="bg-zinc-900/40 border border-zinc-800 rounded-xl p-4">
+                <div className="flex items-center gap-3">
+                  {(['creating_escrow', 'confirming_escrow', 'deploying'] as const).map((phase, i) => {
+                    const labels = { creating_escrow: 'Escrow', confirming_escrow: 'Confirm', deploying: 'Deploy' }
+                    const phaseOrder = { idle: -1, approving: -1, creating_escrow: 0, confirming_escrow: 1, deploying: 2 }
+                    const current = phaseOrder[deployPhase] ?? -1
+                    const isDone = current > i
+                    const isActive = current === i
+                    return (
+                      <div key={phase} className="flex items-center gap-2 flex-1">
+                        <div className="flex items-center gap-2 flex-1">
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 transition-all duration-300 ${
+                            isDone
+                              ? 'bg-green-500/20 text-green-400'
+                              : isActive
+                              ? 'bg-red-500/20 text-red-400 ring-1 ring-red-500/50'
+                              : 'bg-zinc-800/80 text-zinc-600'
+                          }`}>
+                            {isDone ? <CheckCircle className="w-3 h-3" /> : isActive ? <Loader2 className="w-3 h-3 animate-spin" /> : i + 1}
+                          </div>
+                          <span className={`text-[11px] font-medium ${isActive ? 'text-white' : isDone ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                            {labels[phase]}
+                          </span>
+                        </div>
+                        {i < 2 && (
+                          <div className={`h-px flex-1 min-w-4 transition-colors duration-500 ${isDone ? 'bg-green-500/40' : 'bg-zinc-800'}`} />
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Error details */}
+            {deployError && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-red-500/5 border border-red-500/20 rounded-xl p-4 space-y-3"
+              >
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-red-400">Error</p>
+                    <p className="text-xs text-zinc-400 mt-1 break-words">{deployError}</p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Live terminal log */}
             <TerminalLog
               title="deploy output"
-              lines={[
-                { level: 'info', message: `Container ${deployResult.container_id} created` },
-                { level: 'info', message: `Image: ${image}` },
-                { level: 'info', message: `Tier: ${tier.name} (${tier.cpu}, ${tier.mem})` },
-                { level: 'info', message: `Regions: ${deployResult.regions.join(', ')}` },
-                { level: 'info', message: `Replicas: ${deployResult.replica_count}x` },
-                { level: 'info', message: `Cost: ${formatCost(totalCost)} BUNKER (${duration}h @ ~${Math.round(tier.monthly / HOURS_PER_MONTH).toLocaleString()}/hr)` },
-                { level: 'info', message: 'Pulling image via IPFS...' },
-                { level: 'info', message: 'Creating encrypted container...' },
-                { level: 'info', message: 'Replication in progress...' },
-              ]}
+              lines={deployLogs}
             />
 
-            <motion.button
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              onClick={() => { setStep(1); setImage(''); setPreset(undefined); setDeployResult(null); resetApproval() }}
-              className="w-full px-4 py-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-white text-sm font-medium rounded-lg transition-colors"
+            {/* Actions — different based on state */}
+            <div className="flex gap-3">
+              {deployError && (
+                <motion.button
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  onClick={() => { setDeployError(null); setDeployLogs([]); handleDeploy() }}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-red-500/10 hover:bg-red-500/15 border border-red-500/20 text-red-400 text-sm font-medium rounded-lg transition-colors"
+                >
+                  <RotateCcw className="w-4 h-4" /> Retry
+                </motion.button>
+              )}
+              {(deployError || deployResult) && (
+                <motion.button
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: deployResult ? 0.5 : 0 }}
+                  onClick={() => {
+                    setStep(1); setImage(''); setPreset(undefined)
+                    setDeployResult(null); setDeployError(null); setDeployLogs([])
+                    deployStartedRef.current = false; resetApproval()
+                  }}
+                  className="flex-1 px-4 py-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  Deploy Another
+                </motion.button>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Confirmation panel (right slide-out) — outside step conditionals so it survives step changes */}
+      <AnimatePresence>
+        {showConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowConfirm(false)}
+          >
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              onClick={e => e.stopPropagation()}
+              className="absolute right-0 top-0 bottom-0 w-full max-w-md bg-zinc-950 border-l border-zinc-800 flex flex-col"
             >
-              Deploy Another
-            </motion.button>
+              {/* Header */}
+              <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800">
+                <h3 className="text-base font-semibold text-white">Confirm Deployment</h3>
+                <button
+                  onClick={() => setShowConfirm(false)}
+                  className="p-1 text-zinc-500 hover:text-white transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="flex-1 overflow-y-auto px-5 py-5 space-y-5">
+                <p className="text-sm text-zinc-400">
+                  Clicking confirm will open your wallet to create an escrow payment on the Base network.
+                </p>
+
+                {/* Deployment summary */}
+                <div className="bg-black/50 border border-zinc-800 rounded-xl p-4 space-y-2.5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Rocket className="w-4 h-4 text-red-400" />
+                    <span className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Deployment Summary</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-zinc-500">Image</span>
+                    <span className="text-zinc-300 font-mono text-xs truncate max-w-[200px]">{preset?.name ?? image}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-zinc-500">Resources</span>
+                    <span className="text-zinc-300 text-xs">{tier.name} — {tier.cpu}, {tier.mem}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-zinc-500">Duration</span>
+                    <span className="text-zinc-300">{duration}h{duration >= 24 ? ` (${Math.round(duration / 24)}d)` : ''}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-zinc-500">Region</span>
+                    <span className="text-zinc-300">{REGIONS.find(r => r.id === region)?.name ?? region}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-zinc-500">Replicas</span>
+                    <span className="text-zinc-300">3x encrypted</span>
+                  </div>
+                </div>
+
+                {/* Transaction details */}
+                <div className="bg-black/50 border border-zinc-800 rounded-xl p-4 space-y-2.5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Wallet className="w-4 h-4 text-red-400" />
+                    <span className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Transaction</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-zinc-500">Action</span>
+                    <span className="text-zinc-300">Create Escrow</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-zinc-500">Contract</span>
+                    <span className="text-zinc-300 font-mono text-xs">BunkerEscrow</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-zinc-500">Amount</span>
+                    <span className="text-red-400 font-mono font-semibold">{formatCost(totalCost)} BUNKER</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-zinc-500">Network</span>
+                    <span className="text-zinc-300">Base Sepolia</span>
+                  </div>
+                </div>
+
+                {/* Info note */}
+                <div className="flex items-start gap-2.5 text-xs text-zinc-500">
+                  <Lock className="w-3.5 h-3.5 shrink-0 mt-0.5 text-zinc-600" />
+                  <span>
+                    Tokens are locked in the escrow contract and paid to providers over the deployment duration.
+                    Unused tokens are refunded if you stop early.
+                  </span>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="flex gap-3 px-5 py-4 border-t border-zinc-800">
+                <button
+                  onClick={() => setShowConfirm(false)}
+                  className="flex-1 px-4 py-2.5 text-sm font-medium text-zinc-400 hover:text-white bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => { setShowConfirm(false); handleDeploy() }}
+                  className="btn-action flex-1 justify-center"
+                >
+                  <Wallet className="w-4 h-4" /> Confirm & Sign
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Insufficient BUNKER balance dialog — outside step conditionals */}
+      <AnimatePresence>
+        {showNoTokens && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+            onClick={() => setShowNoTokens(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ duration: 0.15 }}
+              onClick={e => e.stopPropagation()}
+              className="w-full max-w-sm mx-4 bg-zinc-900 border border-zinc-700 rounded-2xl shadow-2xl overflow-hidden"
+            >
+              <div className="px-5 py-5 space-y-4 text-center">
+                <div className="w-14 h-14 mx-auto rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+                  <Wallet className="w-7 h-7 text-red-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-white mb-1">Insufficient BUNKER Balance</h3>
+                  <p className="text-sm text-zinc-400">
+                    You need <span className="text-red-400 font-mono font-semibold">{formatCost(totalCost)}</span> BUNKER to deploy this container.
+                  </p>
+                </div>
+                <div className="bg-black/50 border border-zinc-800 rounded-xl px-4 py-3">
+                  <p className="text-xs text-zinc-500 mb-1">Your balance</p>
+                  <p className="text-sm font-mono text-white">
+                    {tokenBalance ? formatCost(Number((tokenBalance as bigint) / BigInt(10 ** 18))) : '0'} BUNKER
+                  </p>
+                </div>
+                <p className="text-xs text-zinc-500">
+                  Base Sepolia testnet tokens will be delivered to testers soon. Stay tuned.
+                </p>
+              </div>
+              <div className="px-5 py-4 border-t border-zinc-800">
+                <button
+                  onClick={() => setShowNoTokens(false)}
+                  className="w-full px-4 py-2.5 text-sm font-medium text-zinc-300 hover:text-white bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors"
+                >
+                  Got it
+                </button>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

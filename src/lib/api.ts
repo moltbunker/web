@@ -216,6 +216,9 @@ export interface ContainerInfo {
   onion_address?: string
   regions: string[]
   owner?: string
+  stopped_at?: string
+  volume_expires_at?: string
+  has_volume?: boolean
 }
 
 // Deployments
@@ -542,6 +545,10 @@ export class ApiClient {
     return this.request<void>('POST', `/v1/containers/${id}/stop`)
   }
 
+  startContainer(id: string) {
+    return this.request<void>('POST', `/v1/containers/${id}/start`)
+  }
+
   deleteContainer(id: string) {
     return this.request<void>('DELETE', `/v1/containers/${id}`)
   }
@@ -552,18 +559,28 @@ export class ApiClient {
     const raw = res.logs ?? ''
     if (!raw) return []
     return raw.split('\n').filter(Boolean).map((line) => {
-      // Format: "[stdout] [2026-02-14T08:27:19Z] message"
+      // Backend format: "[stdout] [2026-02-14T08:27:19Z] message"
       const m = line.match(/^\[(stdout|stderr)]\s+\[([^\]]+)]\s+(.*)$/)
       if (m) {
         const stream = m[1]
-        const msg = m[3]
-        // Detect actual log level from message content
+        let msg = m[3]
+        const ts = m[2]
+
+        // Detect log level from message content
         let level = stream === 'stderr' ? 'warn' : 'info'
-        if (/\[error\]/i.test(msg) || /\berror\b/i.test(msg)) level = 'error'
-        else if (/\[warn/i.test(msg) || /\bwarn(ing)?\b/i.test(msg)) level = 'warn'
-        else if (/\[notice\]/i.test(msg) || /\[info\]/i.test(msg)) level = 'info'
+        if (/\[emerg\]/i.test(msg) || /\[crit\]/i.test(msg) || /\[alert\]/i.test(msg)) level = 'error'
+        else if (/\[error\]/i.test(msg) || /\berror[:\s]/i.test(msg)) level = 'error'
+        else if (/\[warn/i.test(msg) || /\bwarn(ing)?[:\s]/i.test(msg)) level = 'warn'
+        else if (/\[notice\]/i.test(msg)) level = 'info'
         else if (/\[debug\]/i.test(msg)) level = 'debug'
-        return { timestamp: m[2], level, message: msg }
+
+        // Strip redundant inline timestamps from the message body
+        // e.g. "2026/02/15 09:28:29 [notice] 1#1: ..." → "[notice] 1#1: ..."
+        msg = msg.replace(/^\d{4}\/\d{2}\/\d{2}\s+\d{2}:\d{2}:\d{2}\s+/, '')
+        // Strip leading ISO timestamps too
+        msg = msg.replace(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[^\s]*\s+/, '')
+
+        return { timestamp: ts, level, message: msg }
       }
       return { timestamp: '', level: '', message: line }
     })

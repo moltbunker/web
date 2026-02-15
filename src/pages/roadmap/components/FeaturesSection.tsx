@@ -32,7 +32,7 @@ const FeaturesSection = () => {
           <div><Cmd>p2p-network</Cmd>     <Desc>Kademlia DHT with libp2p for decentralization</Desc></div>
           <div><Cmd>tor-integration</Cmd> <Desc>Onion services & hidden service endpoints</Desc></div>
           <div><Cmd>snapshots</Cmd>       <Desc>Full, incremental & checkpoint state capture</Desc></div>
-          <div><Cmd>container-rt</Cmd>    <Desc>containerd runtime with resource isolation</Desc></div>
+          <div><Cmd>container-rt</Cmd>    <Desc>Confidential containers on AMD SEV-SNP hardware</Desc></div>
           <div><Cmd>payments</Cmd>        <Desc>BUNKER token payments on Base L2</Desc></div>
           <div><Cmd>redundancy</Cmd>      <Desc>3-copy geographic distribution across nodes</Desc></div>
         </div>

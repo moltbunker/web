@@ -208,6 +208,17 @@ export function useStopContainer() {
   })
 }
 
+export function useStartContainer() {
+  const { client } = useApiClient()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => client.startContainer(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: keys.containers })
+    },
+  })
+}
+
 export function useDeleteContainer() {
   const { client } = useApiClient()
   const qc = useQueryClient()

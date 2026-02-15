@@ -88,7 +88,7 @@ const Tokenomics = () => {
               <div className="flex items-center space-x-2">
                 <Badge variant="accent">Base Network</Badge>
                 <Badge variant="default">ERC-20</Badge>
-                <Badge variant="default">Coming Soon</Badge>
+                <Badge variant="default">Verified</Badge>
               </div>
 
               <div className="pt-4 border-t border-muted-foreground/10">

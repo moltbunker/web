@@ -54,7 +54,7 @@ export default function ImagePicker({ selected, onSelect }: ImagePickerProps) {
 
   // Default to first category when categories load or change
   useEffect(() => {
-    if (categories.length && (!activeCategory || !categories.includes(activeCategory))) {
+    if (categories.length && (!activeCategory || (activeCategory !== 'custom' && !categories.includes(activeCategory)))) {
       setActiveCategory(categories[0])
     }
   }, [categories, activeCategory])
