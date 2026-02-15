@@ -26,6 +26,93 @@ export const BUNKER_ESCROW_ABI = [
   { name: 'createReservation', type: 'function', stateMutability: 'nonpayable', inputs: [{ name: 'amount', type: 'uint256' }, { name: 'duration', type: 'uint256' }], outputs: [{ name: 'reservationId', type: 'uint256' }] },
 ] as const
 
+// ── Event ABIs (for transaction history) ─────────────────────────────────────
+
+export const TOKEN_TRANSFER_EVENT = {
+  type: 'event', name: 'Transfer',
+  inputs: [
+    { name: 'from', type: 'address', indexed: true },
+    { name: 'to', type: 'address', indexed: true },
+    { name: 'value', type: 'uint256', indexed: false },
+  ],
+} as const
+
+export const ESCROW_EVENTS_ABI = [
+  {
+    type: 'event', name: 'ReservationCreated',
+    inputs: [
+      { name: 'reservationId', type: 'uint256', indexed: true },
+      { name: 'requester', type: 'address', indexed: true },
+      { name: 'amount', type: 'uint256', indexed: false },
+      { name: 'duration', type: 'uint256', indexed: false },
+    ],
+  },
+  {
+    type: 'event', name: 'PaymentReleased',
+    inputs: [
+      { name: 'reservationId', type: 'uint256', indexed: true },
+      { name: 'grossAmount', type: 'uint256', indexed: false },
+      { name: 'netToProviders', type: 'uint256', indexed: false },
+      { name: 'protocolFee', type: 'uint256', indexed: false },
+      { name: 'burnedAmount', type: 'uint256', indexed: false },
+      { name: 'treasuryAmount', type: 'uint256', indexed: false },
+    ],
+  },
+  {
+    type: 'event', name: 'Refunded',
+    inputs: [
+      { name: 'reservationId', type: 'uint256', indexed: true },
+      { name: 'requester', type: 'address', indexed: true },
+      { name: 'refundAmount', type: 'uint256', indexed: false },
+    ],
+  },
+] as const
+
+export const STAKING_EVENTS_ABI = [
+  {
+    type: 'event', name: 'Staked',
+    inputs: [
+      { name: 'provider', type: 'address', indexed: true },
+      { name: 'amount', type: 'uint256', indexed: false },
+      { name: 'totalStake', type: 'uint256', indexed: false },
+      { name: 'tier', type: 'uint8', indexed: false },
+    ],
+  },
+  {
+    type: 'event', name: 'UnstakeRequested',
+    inputs: [
+      { name: 'provider', type: 'address', indexed: true },
+      { name: 'amount', type: 'uint256', indexed: false },
+      { name: 'unlockTime', type: 'uint256', indexed: false },
+      { name: 'requestIndex', type: 'uint256', indexed: false },
+    ],
+  },
+  {
+    type: 'event', name: 'UnstakeCompleted',
+    inputs: [
+      { name: 'provider', type: 'address', indexed: true },
+      { name: 'amount', type: 'uint256', indexed: false },
+      { name: 'requestIndex', type: 'uint256', indexed: false },
+    ],
+  },
+  {
+    type: 'event', name: 'RewardClaimed',
+    inputs: [
+      { name: 'provider', type: 'address', indexed: true },
+      { name: 'amount', type: 'uint256', indexed: false },
+    ],
+  },
+  {
+    type: 'event', name: 'Slashed',
+    inputs: [
+      { name: 'provider', type: 'address', indexed: true },
+      { name: 'totalSlashed', type: 'uint256', indexed: false },
+      { name: 'burnedAmount', type: 'uint256', indexed: false },
+      { name: 'treasuryAmount', type: 'uint256', indexed: false },
+    ],
+  },
+] as const
+
 // ── Contract name type & addresses ───────────────────────────────────────────
 
 export type ContractName = 'token' | 'staking' | 'escrow' | 'pricing' | 'timelock' | 'delegation' | 'reputation' | 'verification'

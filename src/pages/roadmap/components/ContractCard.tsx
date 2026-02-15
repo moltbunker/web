@@ -6,9 +6,14 @@ interface ContractCardProps {
   address: string
   status: 'live' | 'coming'
   icon: React.ElementType
+  network?: 'mainnet' | 'sepolia'
 }
 
-const ContractCard = ({ title, address, status, icon: Icon }: ContractCardProps) => (
+const ContractCard = ({ title, address, status, icon: Icon, network = 'mainnet' }: ContractCardProps) => {
+  const explorerBase = network === 'sepolia' ? 'https://sepolia.basescan.org' : 'https://basescan.org'
+  const networkLabel = network === 'sepolia' ? 'Live on Base Sepolia' : 'Live on Base'
+
+  return (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
@@ -22,7 +27,7 @@ const ContractCard = ({ title, address, status, icon: Icon }: ContractCardProps)
         <div>
           <h3 className="font-semibold text-white">{title}</h3>
           <span className={`text-xs font-medium ${status === 'live' ? 'text-emerald-400' : 'text-red-400'}`}>
-            {status === 'live' ? 'Live on Base' : 'Deploying Feb 13'}
+            {status === 'live' ? networkLabel : 'Coming Soon'}
           </span>
         </div>
       </div>
@@ -34,7 +39,7 @@ const ContractCard = ({ title, address, status, icon: Icon }: ContractCardProps)
           {address}
         </code>
         <a
-          href={`https://basescan.org/address/${address}`}
+          href={`${explorerBase}/address/${address}`}
           target="_blank"
           rel="noopener noreferrer"
           className="p-2 text-zinc-400 hover:text-white transition-colors"
@@ -48,6 +53,7 @@ const ContractCard = ({ title, address, status, icon: Icon }: ContractCardProps)
       </div>
     )}
   </motion.div>
-)
+  )
+}
 
 export default ContractCard

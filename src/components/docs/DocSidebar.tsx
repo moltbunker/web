@@ -25,6 +25,7 @@ const docSections = [
       { name: 'API Reference', href: '/docs/api-reference' },
       { name: 'Base Network', href: '/docs/base-network' },
       { name: 'Tokenomics', href: '/docs/tokenomics' },
+      { name: 'Smart Contracts', href: '/docs/smart-contracts' },
     ],
   },
   {

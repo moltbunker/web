@@ -181,7 +181,7 @@ runtime = mb.reserve(
 | **Blockchain** | Base (Chain ID: `8453`) |
 | **Token** | BUNKER (ERC-20) |
 | **Clearnet API** | `api.moltbunker.com` |
-| **Tor Hidden Service** | `bunkerwvq4gefb6clz5rp7lldjkfq3luy5jrtfra2pn2ifgeqt43kxid.onion` |
+| **Tor Hidden Service** | `r53dd7f77csljfutlnm2waeoelr5sltbmnp5c6vbvyqszwhncskobtqd.onion` |
 
 <br />
 

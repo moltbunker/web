@@ -1,10 +1,10 @@
 import { useState, lazy, Suspense } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, useSearchParams, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Square, Trash2, Copy, Check } from 'lucide-react'
+import { ArrowLeft, Square, Trash2, Copy, Check, Play } from 'lucide-react'
 import StatusDot from '@/components/app/StatusDot'
 import TerminalLog from '@/components/app/TerminalLog'
-import { useContainer, useContainerLogs, useStopContainer, useDeleteContainer } from '@/hooks/useApi'
+import { useContainer, useContainerLogs, useStopContainer, useStartContainer, useDeleteContainer } from '@/hooks/useApi'
 
 const Terminal = lazy(() => import('@/components/app/Terminal'))
 
@@ -13,13 +13,16 @@ type Tab = (typeof allTabs)[number]
 
 export default function ContainerDetail() {
   const { id } = useParams()
-  const [activeTab, setActiveTab] = useState<Tab>('Overview')
+  const [searchParams] = useSearchParams()
+  const initialTab = allTabs.includes(searchParams.get('tab') as Tab) ? (searchParams.get('tab') as Tab) : 'Overview'
+  const [activeTab, setActiveTab] = useState<Tab>(initialTab)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [copiedId, setCopiedId] = useState(false)
 
   const { data: container, isLoading } = useContainer(id ?? '')
   const { data: logs = [] } = useContainerLogs(id ?? '')
   const stopMutation = useStopContainer()
+  const startMutation = useStartContainer()
   const deleteMutation = useDeleteContainer()
 
   if (isLoading || !container) {
@@ -75,6 +78,18 @@ export default function ContainerDetail() {
             >
               <Square className="w-4 h-4" />
               {stopMutation.isPending ? 'Stopping...' : 'Stop'}
+            </motion.button>
+          )}
+          {info.status === 'stopped' && info.has_volume && (
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => id && startMutation.mutate(id)}
+              disabled={startMutation.isPending}
+              className="px-4 py-2 rounded-lg text-sm font-medium bg-green-600/20 text-green-400 border border-green-600/30 hover:bg-green-600/30 transition-colors flex items-center gap-2"
+            >
+              <Play className="w-4 h-4" />
+              {startMutation.isPending ? 'Starting...' : 'Start'}
             </motion.button>
           )}
           {info.status === 'stopped' && (

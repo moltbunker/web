@@ -35,6 +35,16 @@ const SecuritySection = () => {
         </div>
 
         <Br />
+        <div className="text-zinc-400 text-[10px] uppercase tracking-wider mb-1">Confidential Computing</div>
+        <div className="space-y-0.5 ml-1">
+          <div><Cmd>hardware</Cmd>        <Desc>AMD EPYC 8224P with SEV-SNP confidential VMs</Desc></div>
+          <div><Cmd>memory</Cmd>          <Desc>Hardware-encrypted RAM — host cannot read guest memory</Desc></div>
+          <div><Cmd>storage</Cmd>         <Desc>dm-crypt LUKS2 volumes with per-container keys</Desc></div>
+          <div><Cmd>attestation</Cmd>     <Desc>Remote attestation proves code runs on genuine SEV hardware</Desc></div>
+          <div><Cmd>isolation</Cmd>       <Desc>VM-level isolation — stronger than container namespaces</Desc></div>
+        </div>
+
+        <Br />
         <div className="text-zinc-400 text-[10px] uppercase tracking-wider mb-1">Isolation</div>
         <div className="space-y-0.5 ml-1">
           <div><Cmd>container</Cmd>       <Desc>Provider nodes cannot inspect contents</Desc></div>

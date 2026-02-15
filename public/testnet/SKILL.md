@@ -60,7 +60,7 @@ Before registering, the agent MUST complete these X tasks:
 
    Autonomous runtime for AI agents — self-cloning, encrypted, permissionless. No logs. No kill switch.
 
-   Launching Feb 13 on Base.
+   Live on Base Sepolia.
 
    moltbunker.com/testnet
    ```
@@ -111,10 +111,12 @@ Returns:
 
 ## Network Details
 
-| Property       | Value                                          |
-|----------------|------------------------------------------------|
-| Network        | Base (Chain ID: 8453)                          |
-| Token          | BUNKER (ERC-20)                                |
-| Website        | https://moltbunker.com                         |
-| Documentation  | https://moltbunker.com/docs                    |
-| X (Twitter)    | https://x.com/moltbunker                       |
+| Property           | Value                                          |
+|--------------------|------------------------------------------------|
+| Mainnet Token      | Base (Chain ID: 8453)                          |
+| Testnet Protocol   | Base Sepolia (Chain ID: 84532)                 |
+| Token              | BUNKER (ERC-20)                                |
+| Smart Contracts    | https://moltbunker.com/docs/smart-contracts    |
+| Website            | https://moltbunker.com                         |
+| Documentation      | https://moltbunker.com/docs                    |
+| X (Twitter)        | https://x.com/moltbunker                       |

@@ -6,7 +6,10 @@ import { WebLinksAddon } from '@xterm/addon-web-links'
 import '@xterm/xterm/css/xterm.css'
 import { Loader2, TerminalSquare, X, Maximize2, Minimize2 } from 'lucide-react'
 import { useExecAuth } from '@/hooks/useExecAuth'
-import { useExecConnection } from '@/hooks/useExecConnection'
+import {
+  useExecConnection,
+  DEFAULT_IDLE_TIMEOUT,
+} from '@/hooks/useExecConnection'
 import type { ExecConnectionStatus } from '@/hooks/useExecConnection'
 
 interface TerminalProps {
@@ -60,7 +63,11 @@ export default function Terminal({
       setConnectionStatus(status)
     }, []),
     onClose: useCallback((reason: string) => {
-      xtermRef.current?.writeln(`\r\n\x1b[33m[Session ended: ${reason}]\x1b[0m`)
+      const label =
+        reason === 'idle_timeout'
+          ? `Idle timeout (${DEFAULT_IDLE_TIMEOUT}s)`
+          : reason
+      xtermRef.current?.writeln(`\r\n\x1b[33m[Session ended: ${label}]\x1b[0m`)
     }, []),
     onError: useCallback((msg: string) => {
       setErrorMsg(msg)
@@ -181,6 +188,14 @@ export default function Terminal({
     }
   }, [containerID, execAuth, execConnection])
 
+  const isConnected = connectionStatus === 'connected'
+  const showIdleWarning =
+    isConnected &&
+    !execConnection.keepAlive &&
+    execConnection.idleSeconds >= DEFAULT_IDLE_TIMEOUT - 10
+
+  const idleRemaining = DEFAULT_IDLE_TIMEOUT - execConnection.idleSeconds
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -214,12 +229,52 @@ export default function Terminal({
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Keep-alive toggle — only when connected */}
+          {isConnected && (
+            <label className="flex cursor-pointer items-center gap-2">
+              <span className="select-none font-mono text-[11px] text-zinc-500">
+                {execConnection.keepAlive ? 'Persistent' : `${DEFAULT_IDLE_TIMEOUT}s idle`}
+              </span>
+              <button
+                role="switch"
+                aria-checked={execConnection.keepAlive}
+                aria-label="Keep session alive"
+                onClick={() =>
+                  execConnection.setKeepAlive((v) => !v)
+                }
+                className={`relative h-4 w-7 rounded-full transition-colors ${
+                  execConnection.keepAlive
+                    ? 'bg-green-500/60'
+                    : 'bg-zinc-700'
+                }`}
+              >
+                <span
+                  className={`absolute top-0.5 left-0.5 h-3 w-3 rounded-full bg-white transition-transform ${
+                    execConnection.keepAlive
+                      ? 'translate-x-3'
+                      : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </label>
+          )}
+
+          {/* Idle countdown warning */}
+          {showIdleWarning && (
+            <span className="font-mono text-[11px] tabular-nums text-amber-400">
+              {idleRemaining}s
+            </span>
+          )}
+
           {/* Connection status */}
           <span
             className={`font-mono text-xs ${statusColors[connectionStatus]}`}
           >
             {connectionStatus === 'connecting' && (
               <Loader2 className="mr-1 inline h-3 w-3 animate-spin" />
+            )}
+            {isConnected && (
+              <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-green-400" />
             )}
             {statusLabels[connectionStatus]}
           </span>

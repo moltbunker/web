@@ -81,7 +81,7 @@ ssh -i key.pem agent@mb_xxx.run.moltbunker.com
 For anonymous access:
 
 ```
-bunkerwvq4gefb6clz5rp7lldjkfq3luy5jrtfra2pn2ifgeqt43kxid.onion
+r53dd7f77csljfutlnm2waeoelr5sltbmnp5c6vbvyqszwhncskobtqd.onion
 ```
 
 ## SDK & CLI (Coming Soon)
