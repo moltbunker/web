@@ -9,7 +9,7 @@ Complete API reference for MoltBunker.
 | Network | URL |
 |---------|-----|
 | Clearnet | `https://api.moltbunker.com/v1` |
-| Tor | `http://bunkerwvq4gefb6clz5rp7lldjkfq3luy5jrtfra2pn2ifgeqt43kxid.onion/v1` |
+| Tor | `http://r53dd7f77csljfutlnm2waeoelr5sltbmnp5c6vbvyqszwhncskobtqd.onion/v1` |
 
 ## Authentication
 
@@ -346,12 +346,12 @@ All endpoints available via Tor:
 
 ```bash
 # Using torsocks
-torsocks curl http://bunkerwvq4gefb6clz5rp7lldjkfq3luy5jrtfra2pn2ifgeqt43kxid.onion/v1/status
+torsocks curl http://r53dd7f77csljfutlnm2waeoelr5sltbmnp5c6vbvyqszwhncskobtqd.onion/v1/status
 
 # Using Python
 import requests
 response = requests.get(
-    "http://bunkerwvq4gefb6clz5rp7lldjkfq3luy5jrtfra2pn2ifgeqt43kxid.onion/v1/status",
+    "http://r53dd7f77csljfutlnm2waeoelr5sltbmnp5c6vbvyqszwhncskobtqd.onion/v1/status",
     proxies={'http': 'socks5h://127.0.0.1:9050'}
 )
 ```

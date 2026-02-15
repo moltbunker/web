@@ -6,51 +6,52 @@ import CodeBlock from '@/components/ui/CodeBlock'
 import Button from '@/components/ui/Button'
 
 const SDK = () => {
-  const installCommand = 'pip install moltbunker'
-  
-  const exampleCode = `from moltbunker import Client, BaseNetwork
+  const installCommand = `# Core
+pip install moltbunker
 
-# Initialize client with Base network wallet
-client = Client(
-    wallet_address="0x...",
-    private_key="..."  # Or use environment variable
-)
+# With wallet + WebSocket support
+pip install moltbunker[full]`
 
-# Register your bot
+  const exampleCode = `from moltbunker import Client, ResourceLimits, Region
+
+# Authenticate with your wallet (permissionless)
+client = Client(private_key="0x...")
+
+# Register and deploy a container
 bot = client.register_bot(
-    skill_path="SKILL.md",
-    name="MyAIBot"
+    name="my-agent",
+    image="python:3.11",
+    resources=ResourceLimits(cpu_shares=2048, memory_mb=4096),
+    region=Region.EUROPE,
 )
 
-# Reserve runtime power (paid in BUNKER tokens)
-runtime = client.reserve_runtime(
-    cpu_cores=4,
-    memory_gb=16,
+# Reserve runtime (paid in BUNKER tokens)
+runtime = bot.reserve_runtime(
+    min_memory_mb=4096,
     duration_hours=24,
-    payment_token="BUNKER"
 )
 
-# Deploy bot to reserved runtime
-deployment = bot.deploy(runtime_id=runtime.id)
+# Deploy to reserved runtime
+deployment = runtime.deploy(env={"MODE": "production"})
 
 # Enable self-cloning for protection
 bot.enable_cloning(
     auto_clone_on_threat=True,
-    max_clones=10
+    max_clones=10,
 )
 
-# Monitor bot status
-status = bot.get_status()
-print(f"Bot status: {status.status}")
-print(f"Active clones: {status.clones}")`
+# Monitor threat level
+threat = client.get_threat_level()
+print(f"Threat: {threat.level} (score: {threat.score})")
+print(f"Containers: {len(client.list_containers())}")`
 
   const features = [
-    'BUNKER token payment integration',
-    'Base network wallet support',
-    'Bot registration and deployment',
-    'Runtime reservation management',
-    'Self-cloning configuration',
-    'Status monitoring and alerts',
+    'BUNKER token payments on Base L2',
+    'Wallet auth (API key, inline EIP-191, session tokens)',
+    'Bot registration and container deployment',
+    'Runtime reservation with escrow',
+    'Threat-triggered self-cloning',
+    'Real-time WebSocket events and exec terminal',
   ]
 
   return (
@@ -70,7 +71,7 @@ print(f"Active clones: {status.clones}")`
             Python SDK
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Integrate MoltBunker into your AI bot with our comprehensive Python SDK
+            Integrate MoltBunker into your AI agents with our Python SDK
           </p>
         </motion.div>
 
@@ -83,7 +84,7 @@ print(f"Active clones: {status.clones}")`
             </div>
             <CodeBlock code={installCommand} language="bash" />
             <p className="text-sm text-muted-foreground mt-4">
-              Requires Python 3.8+. Works with any Base network compatible wallet.
+              Requires Python 3.8+. Supports API key, wallet inline, and wallet session authentication.
             </p>
           </Card>
 
@@ -122,7 +123,7 @@ print(f"Active clones: {status.clones}")`
           <CodeBlock code={exampleCode} language="python" />
           <div className="mt-6 p-4 bg-accent/10 rounded-lg border border-accent/20">
             <p className="text-sm text-foreground">
-              <strong>Note:</strong> All payments are handled automatically using BUNKER tokens on Base network. 
+              <strong>Note:</strong> All payments are handled automatically using BUNKER tokens on Base network.
               Make sure your wallet has sufficient BUNKER tokens before reserving runtime.
             </p>
           </div>

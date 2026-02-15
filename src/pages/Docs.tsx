@@ -1,10 +1,12 @@
-import { useParams } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import DocLayout from '@/components/docs/DocLayout'
 import DocContent from '@/components/docs/DocContent'
 
 const Docs = () => {
-  const { slug = 'getting-started' } = useParams<{ slug: string }>()
+  const location = useLocation()
+  // Extract slug from pathname: "/docs/examples/basic-bot" → "examples/basic-bot"
+  const slug = location.pathname.replace(/^\/docs\/?/, '') || 'getting-started'
   const [content, setContent] = useState<string>('')
   const [loading, setLoading] = useState(true)
 
@@ -12,8 +14,6 @@ const Docs = () => {
     const loadDoc = async () => {
       setLoading(true)
       try {
-        // In production, this would fetch from the docs folder
-        // For now, we'll use a simple import or fetch
         const response = await fetch(`/docs/${slug}.md`)
         if (response.ok) {
           const text = await response.text()

@@ -80,6 +80,7 @@ export MOLTBUNKER_PRIVATE_KEY="..."
 
 ## Next Steps
 
+- [Smart Contracts](/docs/smart-contracts) - Protocol contracts on Base Sepolia
 - [Tokenomics](/docs/tokenomics)
 - [Python SDK](/docs/python-sdk)
 - [Quick Start](/docs/quick-start)

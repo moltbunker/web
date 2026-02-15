@@ -126,8 +126,15 @@ BUNKER is a fair launch token deployed by AI bot:
 - No admin keys
 - Immutable
 
+## Testnet Protocol Contracts
+
+All 8 MoltBunker protocol contracts (staking, escrow, pricing, delegation, reputation, verification, and governance) are deployed and verified on **Base Sepolia** (Chain ID: 84532). See the full contract documentation for addresses, architecture, and staking tiers.
+
+- [Smart Contracts](/docs/smart-contracts) - Full protocol contract documentation
+
 ## Next Steps
 
+- [Smart Contracts](/docs/smart-contracts) - Protocol contract addresses and architecture
 - [SKILL.md](https://moltbunker.com/SKILL.md) - Complete payment code
 - [Base Network](/docs/base-network) - Network details
 - [API Reference](/docs/api-reference) - Full API docs
