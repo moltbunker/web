@@ -9,6 +9,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
 export default function ApiProvider({ children }: { children: React.ReactNode }) {
   const client = useMemo(() => new ApiClient(API_BASE_URL), [])
   const authManager = useRef(new AuthManager(client))
+  const onUnauthorizedRef = useRef<(() => void) | null>(null)
 
   const { address, isConnected } = useAccount()
   const { signMessageAsync } = useSignMessage()
@@ -21,11 +22,16 @@ export default function ApiProvider({ children }: { children: React.ReactNode })
 
   // Listen for auth state changes and 401 responses
   useEffect(() => {
-    authManager.current.setOnStateChange(setAuth)
-    client.onUnauthorized = () => authManager.current.logout()
+    const manager = authManager.current
+    const c = client
+    manager.setOnStateChange(setAuth)
+    onUnauthorizedRef.current = () => manager.logout()
+    // eslint-disable-next-line react-hooks/immutability -- intentional: we own this client instance
+    c.onUnauthorized = () => onUnauthorizedRef.current?.()
     return () => {
-      authManager.current.destroy()
-      client.onUnauthorized = null
+      manager.destroy()
+      c.onUnauthorized = null
+      onUnauthorizedRef.current = null
     }
   }, [client])
 

@@ -10,8 +10,9 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ variant = 'primary', size = 'md', className = '', children, ...props }, ref) => {
-    // Filter out conflicting props
-    const { onDrag, onDragEnd, onDragStart, ...motionProps } = props as any
+    // Filter out HTML drag props that conflict with framer-motion
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { onDrag, onDragEnd, onDragStart, ...motionProps } = props as Record<string, unknown>
     const baseStyles = 'inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background disabled:opacity-50 disabled:cursor-not-allowed'
     
     const variants = {

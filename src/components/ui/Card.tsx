@@ -7,8 +7,9 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const Card = ({ children, hover = true, className = '', ...props }: CardProps) => {
-  // Filter out conflicting props
-  const { onDrag, onDragEnd, onDragStart, ...motionProps } = props as any
+  // Filter out HTML drag props that conflict with framer-motion
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { onDrag, onDragEnd, onDragStart, ...motionProps } = props as Record<string, unknown>
   
   return (
     <motion.div

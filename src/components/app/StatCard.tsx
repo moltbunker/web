@@ -17,7 +17,7 @@ function AnimatedCounter({ value, duration = 1500 }: { value: number; duration?:
   const [display, setDisplay] = useState(0)
 
   useEffect(() => {
-    if (value === 0) { setDisplay(0); return }
+    if (value === 0) return
     const start = performance.now()
     const tick = (now: number) => {
       const elapsed = now - start

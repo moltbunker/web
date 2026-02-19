@@ -7,6 +7,7 @@ import Docs from '@/pages/Docs'
 import WhitepaperPage from '@/pages/Whitepaper'
 import NotFound from '@/pages/NotFound'
 
+const Blog = lazy(() => import('@/pages/Blog'))
 const Roadmap = lazy(() => import('@/pages/roadmap'))
 const AppLayout = lazy(() => import('@/components/app/AppLayout'))
 const Overview = lazy(() => import('@/pages/app/Overview'))
@@ -39,6 +40,8 @@ function AppShell() {
             <Route path="/" element={<Home />} />
             <Route path="/docs" element={<Docs />} />
             <Route path="/docs/*" element={<Docs />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/*" element={<Blog />} />
             <Route path="/roadmap" element={<Roadmap />} />
             <Route path="/whitepaper" element={<WhitepaperPage />} />
             <Route path="/app" element={<AppLayout />}>

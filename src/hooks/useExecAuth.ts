@@ -13,12 +13,15 @@ export interface ExecAuthState {
   error: string | null
 }
 
+/** Fixed message signed once per browser session to derive the master KEK. */
+const MASTER_KEK_MESSAGE = 'moltbunker:exec-master:v1'
+
 /**
  * useExecAuth manages the exec two-factor authentication flow:
- * 1. Request a single-use challenge nonce from the API
- * 2. User signs with their wallet (proves key ownership)
- * 3. Derive master KEK from the signature (for E2E encryption)
- * 4. Return the nonce + signature for WebSocket upgrade
+ * 1. Derive master KEK from a fixed wallet signature (cached — one prompt per session)
+ * 2. Request a single-use challenge nonce from the API
+ * 3. User signs the challenge with their wallet (proves key ownership per exec)
+ * 4. Return the challenge nonce + signature for WebSocket upgrade, plus the cached masterKEK
  */
 export function useExecAuth() {
   const { client } = useApiClient()
@@ -30,10 +33,8 @@ export function useExecAuth() {
     error: null,
   })
 
-  // Cache the master KEK so we don't ask the user to sign again
+  // Cache the master KEK so we only ask for the KEK signature once per session
   const masterKEKRef = useRef<CryptoKey | null>(null)
-  // Cache the last signature for session key derivation
-  const lastSignatureRef = useRef<string | null>(null)
 
   /**
    * Authenticate for exec access to a container.
@@ -44,16 +45,21 @@ export function useExecAuth() {
       setState({ isReady: false, isLoading: true, error: null })
 
       try {
-        // Step 1: Get challenge from API
+        // Step 1: Derive master KEK (cached — only signs once per browser session)
+        let masterKEK = masterKEKRef.current
+        if (!masterKEK) {
+          const kekSignature = await signMessageAsync({
+            message: MASTER_KEK_MESSAGE,
+          })
+          masterKEK = await deriveMasterKEK(kekSignature)
+          masterKEKRef.current = masterKEK
+        }
+
+        // Step 2: Get per-exec challenge from API
         const { nonce, message } = await client.execChallenge(containerID)
 
-        // Step 2: Sign with wallet (user sees popup)
+        // Step 3: Sign the challenge with wallet (user sees popup — this is the per-exec auth)
         const signature = await signMessageAsync({ message })
-
-        // Step 3: Derive master KEK from the deterministic signature
-        const masterKEK = await deriveMasterKEK(signature)
-        masterKEKRef.current = masterKEK
-        lastSignatureRef.current = signature
 
         setState({ isReady: true, isLoading: false, error: null })
 
@@ -74,7 +80,6 @@ export function useExecAuth() {
   /** Reset auth state (e.g., on disconnect). */
   const reset = useCallback(() => {
     masterKEKRef.current = null
-    lastSignatureRef.current = null
     setState({ isReady: false, isLoading: false, error: null })
   }, [])
 

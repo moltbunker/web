@@ -121,6 +121,7 @@ export function useTransactionHistory() {
           )
 
           for (const log of sent) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const args = (log as any).args
             if (!args) continue
             const to = (args.to as string).toLowerCase()
@@ -135,6 +136,7 @@ export function useTransactionHistory() {
           }
 
           for (const log of received) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const args = (log as any).args
             if (!args) continue
             const from = (args.from as string).toLowerCase()
@@ -157,8 +159,10 @@ export function useTransactionHistory() {
           }, fromBlock, latest)
 
           for (const log of escrowLogs) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const args = (log as any).args
             if (!args) continue
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const name = (log as any).eventName as string
 
             if (name === 'ReservationCreated' && args.requester?.toLowerCase() === address!.toLowerCase()) {
@@ -197,9 +201,11 @@ export function useTransactionHistory() {
           }, fromBlock, latest)
 
           for (const log of stakingLogs) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const args = (log as any).args
             if (!args) continue
             if (args.provider?.toLowerCase() !== address!.toLowerCase()) continue
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const name = (log as any).eventName as string
 
             let kind: TxKind | null = null
@@ -261,9 +267,9 @@ export function useTransactionHistory() {
         if (!cancelled) {
           setItems(results)
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (!cancelled) {
-          setError(err.message || 'Failed to fetch transaction history')
+          setError(err instanceof Error ? err.message : 'Failed to fetch transaction history')
         }
       } finally {
         if (!cancelled) setLoading(false)
