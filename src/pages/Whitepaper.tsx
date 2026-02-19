@@ -1,9 +1,32 @@
 import { useEffect, useState } from 'react'
 import DocContent from '@/components/docs/DocContent'
+import { useSEO } from '@/hooks/useSEO'
+
+const SITE_URL = 'https://moltbunker.com'
 
 const WhitepaperPage = () => {
   const [content, setContent] = useState<string>('')
   const [loading, setLoading] = useState(true)
+
+  useSEO({
+    title: 'Whitepaper',
+    description:
+      'MoltBunker technical whitepaper. Architecture, threat model, staking economics, and the design of a permissionless encrypted runtime for autonomous AI agents.',
+    canonical: `${SITE_URL}/whitepaper`,
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'TechArticle',
+      headline: 'MoltBunker Whitepaper',
+      description:
+        'Technical whitepaper covering architecture, threat model, staking economics, and permissionless encrypted runtime design.',
+      url: `${SITE_URL}/whitepaper`,
+      publisher: {
+        '@type': 'Organization',
+        name: 'MoltBunker',
+        url: SITE_URL,
+      },
+    },
+  })
 
   useEffect(() => {
     const loadWhitepaper = async () => {
