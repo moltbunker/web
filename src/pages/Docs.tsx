@@ -2,6 +2,26 @@ import { useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import DocLayout from '@/components/docs/DocLayout'
 import DocContent from '@/components/docs/DocContent'
+import { useSEO } from '@/hooks/useSEO'
+
+const SITE_URL = 'https://moltbunker.com'
+
+/** Map slugs to human-readable titles for SEO. */
+const DOC_TITLES: Record<string, string> = {
+  'getting-started': 'Getting Started',
+  installation: 'Installation',
+  'quick-start': 'Quick Start',
+  'runtime-power': 'Runtime Power',
+  'self-cloning': 'Self-Cloning',
+  security: 'Security',
+  'python-sdk': 'Python SDK',
+  'api-reference': 'API Reference',
+  'base-network': 'Base Network',
+  tokenomics: 'Tokenomics',
+  'smart-contracts': 'Smart Contracts',
+  'examples/basic-bot': 'Basic Bot Example',
+  'examples/advanced-features': 'Advanced Features Example',
+}
 
 const Docs = () => {
   const location = useLocation()
@@ -9,6 +29,26 @@ const Docs = () => {
   const slug = location.pathname.replace(/^\/docs\/?/, '') || 'getting-started'
   const [content, setContent] = useState<string>('')
   const [loading, setLoading] = useState(true)
+
+  const docTitle = DOC_TITLES[slug] || slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+
+  useSEO({
+    title: `${docTitle} - Docs`,
+    description: `MoltBunker documentation: ${docTitle}. Learn how to deploy autonomous AI agents on a permissionless encrypted P2P network.`,
+    canonical: `${SITE_URL}/docs/${slug}`,
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'TechArticle',
+      headline: `${docTitle} - MoltBunker Docs`,
+      description: `MoltBunker documentation: ${docTitle}.`,
+      url: `${SITE_URL}/docs/${slug}`,
+      publisher: {
+        '@type': 'Organization',
+        name: 'MoltBunker',
+        url: SITE_URL,
+      },
+    },
+  })
 
   useEffect(() => {
     const loadDoc = async () => {
