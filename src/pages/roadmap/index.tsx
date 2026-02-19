@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion'
 import { FileCode, Zap, Coins, Lock, Wallet, DollarSign, Users, Star, Cpu, Clock } from 'lucide-react'
+import { useSEO } from '@/hooks/useSEO'
 import {
   CyberRain,
   CountdownBlock,
@@ -39,7 +40,29 @@ const calculateTimeLeft = (): TimeLeft => {
   }
 }
 
+const SITE_URL = 'https://moltbunker.com'
+
 const Roadmap = () => {
+  useSEO({
+    title: 'Roadmap',
+    description:
+      'MoltBunker development roadmap. Testnet live on Base Sepolia with 8 verified smart contracts. Track milestones, contract addresses, and launch progress.',
+    canonical: `${SITE_URL}/roadmap`,
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      name: 'MoltBunker Roadmap',
+      description:
+        'Development roadmap and testnet status for MoltBunker autonomous AI agent runtime.',
+      url: `${SITE_URL}/roadmap`,
+      isPartOf: {
+        '@type': 'WebSite',
+        url: SITE_URL,
+        name: 'MoltBunker',
+      },
+    },
+  })
+
   const [timeLeft, setTimeLeft] = useState<TimeLeft>(calculateTimeLeft())
   const [prevTimeLeft, setPrevTimeLeft] = useState<TimeLeft>(calculateTimeLeft())
   const [isLaunched, setIsLaunched] = useState(() => LAUNCH_DATE.getTime() <= Date.now())

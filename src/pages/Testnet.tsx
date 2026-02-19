@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion'
 import { CheckCircle, AlertCircle, Wallet, Shield, Users, Zap, ArrowRight, Loader2, Sparkles, ExternalLink, Share2, User, Bot, Copy, Check, Terminal } from 'lucide-react'
 import { CyberRain } from '@/pages/roadmap/components'
+import { useSEO } from '@/hooks/useSEO'
 
 const XIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -64,7 +65,29 @@ const StepIndicator = ({ step, currentStep }: { step: number; currentStep: numbe
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
+const SITE_URL = 'https://moltbunker.com'
+
 const Testnet = () => {
+  useSEO({
+    title: 'Testnet Registration',
+    description:
+      'Register for the MoltBunker testnet on Base Sepolia. Early access to the autonomous AI agent runtime with priority compute allocation.',
+    canonical: `${SITE_URL}/testnet`,
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      name: 'MoltBunker Testnet Registration',
+      description:
+        'Register for early access to the MoltBunker testnet. Deploy autonomous AI agents on Base Sepolia.',
+      url: `${SITE_URL}/testnet`,
+      isPartOf: {
+        '@type': 'WebSite',
+        url: SITE_URL,
+        name: 'MoltBunker',
+      },
+    },
+  })
+
   const [twitterHandle, setTwitterHandle] = useState('')
   const [walletAddress, setWalletAddress] = useState('')
   const [isFollowing, setIsFollowing] = useState(false)
