@@ -1,6 +1,12 @@
 // E2E encryption for exec terminal sessions using Web Crypto API.
-// Key hierarchy: wallet signature → HKDF → master_kek → per-session AES-256-GCM key.
+// Key hierarchy: wallet signature → HKDF → master_kek → exec_key → session_key (AES-256-GCM).
 // No external crypto libraries needed — all browser-native.
+//
+// Constants must match Go side (cmd/cli/commands/exec_crypto.go):
+//   Salt:         "moltbunker-exec"
+//   Master info:  "master-kek"
+//   Exec info:    "exec-key"
+//   Session info: "session-key"
 
 // Helper to get a plain ArrayBuffer for Web Crypto API.
 // TS 5.9 strict mode: Uint8Array.buffer is ArrayBufferLike (may be SharedArrayBuffer),
@@ -9,11 +15,17 @@ function buf(arr: Uint8Array): ArrayBuffer {
   return arr.slice().buffer as ArrayBuffer
 }
 
-const HKDF_SALT = new TextEncoder().encode('moltbunker-exec-v1')
+const HKDF_SALT = new TextEncoder().encode('moltbunker-exec')
 const HKDF_INFO_MASTER = new TextEncoder().encode('master-kek')
+const HKDF_INFO_EXEC = new TextEncoder().encode('exec-key')
 const HKDF_INFO_SESSION = new TextEncoder().encode('session-key')
 
-/** Derive a master KEK from a wallet signature (deterministic via RFC 6979). */
+/**
+ * Derive a master KEK from a wallet signature (deterministic via RFC 6979).
+ * Returns an HKDF-capable key (not AES-GCM) so it can be used for chained derivation.
+ *
+ * Go equivalent: hkdfDerive(sig, "moltbunker-exec", "master-kek", 32)
+ */
 export async function deriveMasterKEK(signatureHex: string): Promise<CryptoKey> {
   // Import the signature bytes as raw key material for HKDF
   const sigBytes = hexToBytes(signatureHex.replace(/^0x/, ''))
@@ -22,11 +34,11 @@ export async function deriveMasterKEK(signatureHex: string): Promise<CryptoKey> 
     buf(sigBytes),
     'HKDF',
     false,
-    ['deriveKey'],
+    ['deriveBits', 'deriveKey'],
   )
 
-  // Derive a 256-bit AES key using HKDF-SHA256
-  return crypto.subtle.deriveKey(
+  // Derive 256 bits of key material using HKDF-SHA256
+  const masterBits = await crypto.subtle.deriveBits(
     {
       name: 'HKDF',
       hash: 'SHA-256',
@@ -34,38 +46,59 @@ export async function deriveMasterKEK(signatureHex: string): Promise<CryptoKey> 
       info: buf(HKDF_INFO_MASTER),
     },
     keyMaterial,
-    { name: 'AES-GCM', length: 256 },
-    false, // not extractable
-    ['encrypt', 'decrypt'],
+    256,
+  )
+
+  // Import the derived bits as a new HKDF key for chained derivation
+  return crypto.subtle.importKey(
+    'raw',
+    masterBits,
+    'HKDF',
+    false,
+    ['deriveBits', 'deriveKey'],
   )
 }
 
-/** Derive a per-session key from master KEK + session nonce. */
-export async function deriveSessionKey(
+/**
+ * Derive a per-container exec_key from master KEK + deploy nonce.
+ *
+ * Go equivalent: hkdfDerive(masterKEK, deployNonce, "exec-key", 32)
+ */
+export async function deriveExecKey(
   masterKEK: CryptoKey,
-  sessionNonce: Uint8Array,
+  deployNonce: Uint8Array,
 ): Promise<CryptoKey> {
-  const nonceInfo = new Uint8Array([...HKDF_INFO_SESSION, ...sessionNonce])
-
-  // Encrypt a known plaintext with masterKEK+nonce to derive session key material.
-  // Since masterKEK is non-extractable, we use AES-GCM as a KDF-like construction.
-  const iv = sessionNonce.slice(0, 12)
-  const plaintext = new TextEncoder().encode('session-key-derivation-' + bytesToHex(sessionNonce))
-  const encrypted = await crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv: buf(iv), additionalData: buf(nonceInfo) },
+  // Derive 256 bits using HKDF with deploy_nonce as salt
+  const execBits = await crypto.subtle.deriveBits(
+    {
+      name: 'HKDF',
+      hash: 'SHA-256',
+      salt: buf(deployNonce),
+      info: buf(HKDF_INFO_EXEC),
+    },
     masterKEK,
-    buf(plaintext),
+    256,
   )
 
-  // Use the ciphertext as key material for the session key
-  const keyMaterial = await crypto.subtle.importKey(
+  // Import as HKDF key for session key derivation
+  return crypto.subtle.importKey(
     'raw',
-    encrypted.slice(0, 32), // Take first 32 bytes
+    execBits,
     'HKDF',
     false,
-    ['deriveKey'],
+    ['deriveBits', 'deriveKey'],
   )
+}
 
+/**
+ * Derive a per-session AES-256-GCM key from exec_key + session nonce.
+ *
+ * Go equivalent: hkdfDerive(execKey, sessionNonce, "session-key", 32)
+ */
+export async function deriveSessionKey(
+  execKey: CryptoKey,
+  sessionNonce: Uint8Array,
+): Promise<CryptoKey> {
   return crypto.subtle.deriveKey(
     {
       name: 'HKDF',
@@ -73,7 +106,7 @@ export async function deriveSessionKey(
       salt: buf(sessionNonce),
       info: buf(HKDF_INFO_SESSION),
     },
-    keyMaterial,
+    execKey,
     { name: 'AES-GCM', length: 256 },
     false,
     ['encrypt', 'decrypt'],
