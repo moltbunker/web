@@ -20,6 +20,10 @@ export default defineConfig({
         {
           src: 'whitepaper/*.md',
           dest: 'whitepaper'
+        },
+        {
+          src: 'blog/*.md',
+          dest: 'blog'
         }
       ]
     })

@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeHighlight from 'rehype-highlight'
@@ -9,7 +10,7 @@ export const renderMarkdown = (content: string) => {
       remarkPlugins={[remarkGfm]}
       rehypePlugins={[rehypeHighlight]}
       components={{
-        code: ({ node, inline, className, children, ...props }: any) => {
+        code: ({ inline, className, children, ...props }: { inline?: boolean; className?: string; children?: ReactNode }) => {
           const match = /language-(\w+)/.exec(className || '')
           return !inline && match ? (
             <pre className="bg-black rounded-lg p-4 overflow-x-auto my-4 border border-zinc-800">
@@ -23,26 +24,26 @@ export const renderMarkdown = (content: string) => {
             </code>
           )
         },
-        h1: ({ children }: any) => (
+        h1: ({ children }: { children?: ReactNode }) => (
           <h1 className="text-4xl font-bold text-foreground mt-8 mb-4">{children}</h1>
         ),
-        h2: ({ children }: any) => (
+        h2: ({ children }: { children?: ReactNode }) => (
           <h2 className="text-3xl font-bold text-foreground mt-8 mb-4">{children}</h2>
         ),
-        h3: ({ children }: any) => (
+        h3: ({ children }: { children?: ReactNode }) => (
           <h3 className="text-2xl font-semibold text-foreground mt-6 mb-3">{children}</h3>
         ),
-        p: ({ children }: any) => (
+        p: ({ children }: { children?: ReactNode }) => (
           <p className="text-muted-foreground mb-4 leading-relaxed">{children}</p>
         ),
-        ul: ({ children }: any) => (
+        ul: ({ children }: { children?: ReactNode }) => (
           <ul className="list-disc list-inside mb-4 space-y-2 text-muted-foreground">{children}</ul>
         ),
-        ol: ({ children }: any) => (
+        ol: ({ children }: { children?: ReactNode }) => (
           <ol className="list-decimal list-inside mb-4 space-y-2 text-muted-foreground">{children}</ol>
         ),
-        li: ({ children }: any) => <li className="ml-4">{children}</li>,
-        a: ({ href, children }: any) => (
+        li: ({ children }: { children?: ReactNode }) => <li className="ml-4">{children}</li>,
+        a: ({ href, children }: { href?: string; children?: ReactNode }) => (
           <a
             href={href}
             className="text-accent hover:text-accent-dark underline"
@@ -52,7 +53,7 @@ export const renderMarkdown = (content: string) => {
             {children}
           </a>
         ),
-        blockquote: ({ children }: any) => (
+        blockquote: ({ children }: { children?: ReactNode }) => (
           <blockquote className="border-l-4 border-accent pl-4 italic my-4 text-muted-foreground">
             {children}
           </blockquote>

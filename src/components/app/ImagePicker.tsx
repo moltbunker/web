@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search, Package } from 'lucide-react'
 import { presets as defaultPresets, categoryLabels as defaultCategoryLabels, type ImagePreset } from '@/lib/presets'
@@ -10,7 +10,7 @@ interface ImagePickerProps {
 }
 
 export default function ImagePicker({ selected, onSelect }: ImagePickerProps) {
-  const [activeCategory, setActiveCategory] = useState<string>('')
+  const [categoryOverride, setCategoryOverride] = useState<string | null>(null)
   const [customImage, setCustomImage] = useState('')
   const { data: catalog } = useCatalog()
 
@@ -52,12 +52,13 @@ export default function ImagePicker({ selected, onSelect }: ImagePickerProps) {
     return { categories: cats, categoryLabelMap: defaultCategoryLabels as Record<string, string>, presetsForCategory: presetsByCat }
   }, [catalog])
 
-  // Default to first category when categories load or change
-  useEffect(() => {
-    if (categories.length && (!activeCategory || (activeCategory !== 'custom' && !categories.includes(activeCategory)))) {
-      setActiveCategory(categories[0])
-    }
-  }, [categories, activeCategory])
+  // Compute active category from override or fall back to first available
+  const activeCategory = categoryOverride !== null &&
+    (categoryOverride === 'custom' || categories.includes(categoryOverride))
+    ? categoryOverride
+    : (categories[0] || '')
+
+  const setActiveCategory = setCategoryOverride
 
   const filtered = activeCategory !== 'custom'
     ? (presetsForCategory[activeCategory] || [])

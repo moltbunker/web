@@ -42,7 +42,7 @@ const calculateTimeLeft = (): TimeLeft => {
 const Roadmap = () => {
   const [timeLeft, setTimeLeft] = useState<TimeLeft>(calculateTimeLeft())
   const [prevTimeLeft, setPrevTimeLeft] = useState<TimeLeft>(calculateTimeLeft())
-  const [isLaunched, setIsLaunched] = useState(LAUNCH_DATE.getTime() <= Date.now())
+  const [isLaunched, setIsLaunched] = useState(() => LAUNCH_DATE.getTime() <= Date.now())
   const [isLogoHovered, setIsLogoHovered] = useState(false)
 
   // Mouse tracking for logo animation

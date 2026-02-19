@@ -11,9 +11,12 @@ import {
   DEFAULT_IDLE_TIMEOUT,
 } from '@/hooks/useExecConnection'
 import type { ExecConnectionStatus } from '@/hooks/useExecConnection'
+import { deriveExecKey, hexToBytes } from '@/lib/exec-crypto'
 
 interface TerminalProps {
   containerID: string
+  /** Hex-encoded deploy nonce from container detail API (enables E2E encryption). */
+  deployNonce?: string
   onClose?: () => void
   className?: string
 }
@@ -41,6 +44,7 @@ const statusColors: Record<ExecConnectionStatus, string> = {
  */
 export default function Terminal({
   containerID,
+  deployNonce,
   onClose,
   className = '',
 }: TerminalProps) {
@@ -72,6 +76,9 @@ export default function Terminal({
     onError: useCallback((msg: string) => {
       setErrorMsg(msg)
       xtermRef.current?.writeln(`\r\n\x1b[31m[Error: ${msg}]\x1b[0m`)
+    }, []),
+    onEncrypted: useCallback(() => {
+      xtermRef.current?.writeln('\x1b[32m[E2E encryption established]\x1b[0m')
     }, []),
   })
 
@@ -166,13 +173,29 @@ export default function Terminal({
     try {
       xtermRef.current?.writeln('\x1b[90mRequesting wallet signature...\x1b[0m')
 
-      // Step 1: Wallet signature + challenge
-      const { nonce, signature } = await execAuth.authenticate(containerID)
+      // Step 1: Wallet signature + challenge (also derives master KEK)
+      const { nonce, signature, masterKEK } =
+        await execAuth.authenticate(containerID)
+
+      // Step 2: Derive exec key if deploy nonce is available (E2E encryption)
+      let execKey: CryptoKey | undefined
+      if (deployNonce && masterKEK) {
+        try {
+          execKey = await deriveExecKey(masterKEK, hexToBytes(deployNonce))
+          xtermRef.current?.writeln(
+            '\x1b[90mE2E encryption key derived...\x1b[0m',
+          )
+        } catch {
+          xtermRef.current?.writeln(
+            '\x1b[33m[Warning: E2E key derivation failed, using plaintext]\x1b[0m',
+          )
+        }
+      }
 
       xtermRef.current?.writeln('\x1b[90mOpening secure connection...\x1b[0m')
       xtermRef.current?.writeln('')
 
-      // Step 2: Open WebSocket with auth params
+      // Step 3: Open WebSocket with auth params (+ optional exec key for E2E)
       const fitAddon = fitAddonRef.current
       const dims = fitAddon?.proposeDimensions()
       execConnection.connect(
@@ -180,13 +203,14 @@ export default function Terminal({
         signature,
         dims?.cols ?? 80,
         dims?.rows ?? 24,
+        execKey,
       )
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Connection failed'
       setErrorMsg(msg)
       xtermRef.current?.writeln(`\x1b[31mFailed: ${msg}\x1b[0m`)
     }
-  }, [containerID, execAuth, execConnection])
+  }, [containerID, deployNonce, execAuth, execConnection])
 
   const isConnected = connectionStatus === 'connected'
   const showIdleWarning =
@@ -264,6 +288,11 @@ export default function Terminal({
             <span className="font-mono text-[11px] tabular-nums text-amber-400">
               {idleRemaining}s
             </span>
+          )}
+
+          {/* E2E encryption indicator */}
+          {isConnected && execConnection.encrypted && (
+            <span className="font-mono text-[11px] text-green-400">E2E</span>
           )}
 
           {/* Connection status */}
