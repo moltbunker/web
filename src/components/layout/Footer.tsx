@@ -78,9 +78,9 @@ const Footer = () => {
         </div>
 
         <div className="mt-8 pt-6 border-t border-zinc-900">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex flex-col items-center gap-3 md:flex-row md:items-center md:justify-between md:gap-4">
             <p className="text-xs text-zinc-600">
-              © {currentYear} MoltBunker. Built on Base network.
+              © {currentYear} MoltBunker. All rights reserved.
             </p>
             <p className="text-xs text-zinc-600 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
