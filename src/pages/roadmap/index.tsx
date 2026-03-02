@@ -265,7 +265,7 @@ const Roadmap = () => {
               </motion.div>
             </Link>
             <p className="mt-3 text-sm text-zinc-400" style={{ fontFamily: 'var(--font-mono)' }}>
-              Base Sepolia &middot; Chain ID 84532 &middot; 8 contracts deployed &amp; verified
+              Base Sepolia &middot; Chain ID 84532 &middot; 9 contracts deployed &amp; verified
             </p>
           </motion.div>
         )}
