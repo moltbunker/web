@@ -19,6 +19,14 @@ const docSections = [
     ],
   },
   {
+    title: 'Services',
+    items: [
+      { name: 'Molts', href: '/docs/molts' },
+      { name: 'Web Crawling', href: '/docs/web-crawling' },
+      { name: 'AI Agents', href: '/docs/agents' },
+    ],
+  },
+  {
     title: 'Integration',
     items: [
       { name: 'Python SDK', href: '/docs/python-sdk' },

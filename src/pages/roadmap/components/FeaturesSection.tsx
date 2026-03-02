@@ -35,6 +35,10 @@ const FeaturesSection = () => {
           <div><Cmd>container-rt</Cmd>    <Desc>Confidential containers on AMD SEV-SNP hardware</Desc></div>
           <div><Cmd>payments</Cmd>        <Desc>BUNKER token payments on Base L2</Desc></div>
           <div><Cmd>redundancy</Cmd>      <Desc>3-copy geographic distribution across nodes</Desc></div>
+          <div><Cmd>molts</Cmd>          <Desc>Serverless functions — WASM + JS/TS dual runtime</Desc></div>
+          <div><Cmd>crawl</Cmd>          <Desc>Web crawling with JS rendering and Tor routing</Desc></div>
+          <div><Cmd>agents</Cmd>         <Desc>AI agent runtime with MCP tool integration</Desc></div>
+          <div><Cmd>registry</Cmd>       <Desc>On-chain subdomain names on .moltbunker.dev</Desc></div>
         </div>
 
         <Br />

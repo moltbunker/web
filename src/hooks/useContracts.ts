@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 import type { Abi } from 'viem'
-import { CONTRACTS, BUNKER_TOKEN_ABI, BUNKER_STAKING_ABI } from '@/lib/contracts'
+import { CONTRACTS, BUNKER_TOKEN_ABI, BUNKER_STAKING_ABI, BUNKER_REGISTRY_ABI } from '@/lib/contracts'
 import type { ContractName } from '@/lib/contracts'
 
 /** Resolve a contract address for the connected chain. */
@@ -116,6 +116,98 @@ export function useTokenAllowance(spender: `0x${string}` | undefined) {
     functionName: 'allowance',
     args: address && spender ? [address, spender] : undefined,
     query: { enabled, refetchInterval: 30_000 },
+  })
+}
+
+// ─── Registry Hooks ─────────────────────────────────────────────────────────
+
+export function useNameAvailable(name: string) {
+  const address = useContractAddress('registry')
+  return useReadContract({
+    address,
+    abi: BUNKER_REGISTRY_ABI,
+    functionName: 'isAvailable',
+    args: [name],
+    query: { enabled: !!address && name.length >= 3 },
+  })
+}
+
+export function useNamePrice(name: string) {
+  const { address: userAddress } = useAccount()
+  const registryAddress = useContractAddress('registry')
+  return useReadContract({
+    address: registryAddress,
+    abi: BUNKER_REGISTRY_ABI,
+    functionName: 'calculatePrice',
+    args: userAddress ? [name, userAddress] : undefined,
+    query: { enabled: !!registryAddress && !!userAddress && name.length >= 3 },
+  })
+}
+
+export function useNameCount() {
+  const { address } = useAccount()
+  const registryAddress = useContractAddress('registry')
+  return useReadContract({
+    address: registryAddress,
+    abi: BUNKER_REGISTRY_ABI,
+    functionName: 'nameCount',
+    args: address ? [address] : undefined,
+    query: { enabled: !!registryAddress && !!address, refetchInterval: 60_000 },
+  })
+}
+
+export function useOwnedNameAt(index: number) {
+  const { address } = useAccount()
+  const registryAddress = useContractAddress('registry')
+  return useReadContract({
+    address: registryAddress,
+    abi: BUNKER_REGISTRY_ABI,
+    functionName: 'ownedNameAt',
+    args: address ? [address, BigInt(index)] : undefined,
+    query: { enabled: !!registryAddress && !!address && index >= 0, refetchInterval: 60_000 },
+  })
+}
+
+export function useSubdomainRecord(nameHash: `0x${string}` | undefined) {
+  const registryAddress = useContractAddress('registry')
+  return useReadContract({
+    address: registryAddress,
+    abi: BUNKER_REGISTRY_ABI,
+    functionName: 'subdomains',
+    args: nameHash ? [nameHash] : undefined,
+    query: { enabled: !!registryAddress && !!nameHash, refetchInterval: 60_000 },
+  })
+}
+
+export function useNameMetadata(nameHash: `0x${string}` | undefined) {
+  const registryAddress = useContractAddress('registry')
+  return useReadContract({
+    address: registryAddress,
+    abi: BUNKER_REGISTRY_ABI,
+    functionName: 'metadata',
+    args: nameHash ? [nameHash] : undefined,
+    query: { enabled: !!registryAddress && !!nameHash },
+  })
+}
+
+export function useNameOf(nameHash: `0x${string}` | undefined) {
+  const registryAddress = useContractAddress('registry')
+  return useReadContract({
+    address: registryAddress,
+    abi: BUNKER_REGISTRY_ABI,
+    functionName: 'nameOf',
+    args: nameHash ? [nameHash] : undefined,
+    query: { enabled: !!registryAddress && !!nameHash },
+  })
+}
+
+export function useRegistrationFee() {
+  const registryAddress = useContractAddress('registry')
+  return useReadContract({
+    address: registryAddress,
+    abi: BUNKER_REGISTRY_ABI,
+    functionName: 'registrationFee',
+    query: { enabled: !!registryAddress, refetchInterval: 120_000 },
   })
 }
 

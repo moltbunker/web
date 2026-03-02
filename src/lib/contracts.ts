@@ -113,9 +113,29 @@ export const STAKING_EVENTS_ABI = [
   },
 ] as const
 
+export const BUNKER_REGISTRY_ABI = [
+  { name: 'register', type: 'function', stateMutability: 'nonpayable', inputs: [{ name: 'name', type: 'string' }, { name: 'deploymentID', type: 'bytes32' }], outputs: [] },
+  { name: 'renew', type: 'function', stateMutability: 'nonpayable', inputs: [{ name: 'name', type: 'string' }], outputs: [] },
+  { name: 'transfer', type: 'function', stateMutability: 'nonpayable', inputs: [{ name: 'name', type: 'string' }, { name: 'newOwner', type: 'address' }], outputs: [] },
+  { name: 'updateDeployment', type: 'function', stateMutability: 'nonpayable', inputs: [{ name: 'name', type: 'string' }, { name: 'newDeploymentID', type: 'bytes32' }], outputs: [] },
+  { name: 'release', type: 'function', stateMutability: 'nonpayable', inputs: [{ name: 'name', type: 'string' }], outputs: [] },
+  { name: 'setMetadata', type: 'function', stateMutability: 'nonpayable', inputs: [{ name: 'name', type: 'string' }, { name: 'description', type: 'string' }, { name: 'avatarURL', type: 'string' }], outputs: [] },
+  { name: 'resolve', type: 'function', stateMutability: 'view', inputs: [{ name: 'name', type: 'string' }], outputs: [{ name: 'owner', type: 'address' }, { name: 'deploymentID', type: 'bytes32' }, { name: 'registeredAt', type: 'uint256' }] },
+  { name: 'isAvailable', type: 'function', stateMutability: 'view', inputs: [{ name: 'name', type: 'string' }], outputs: [{ name: '', type: 'bool' }] },
+  { name: 'calculatePrice', type: 'function', stateMutability: 'view', inputs: [{ name: 'name', type: 'string' }, { name: 'user', type: 'address' }], outputs: [{ name: 'price', type: 'uint256' }] },
+  { name: 'nameCount', type: 'function', stateMutability: 'view', inputs: [{ name: 'owner', type: 'address' }], outputs: [{ name: '', type: 'uint256' }] },
+  { name: 'ownedNameAt', type: 'function', stateMutability: 'view', inputs: [{ name: 'owner', type: 'address' }, { name: 'index', type: 'uint256' }], outputs: [{ name: '', type: 'bytes32' }] },
+  { name: 'subdomains', type: 'function', stateMutability: 'view', inputs: [{ name: 'nameHash', type: 'bytes32' }], outputs: [{ name: 'owner', type: 'address' }, { name: 'deploymentID', type: 'bytes32' }, { name: 'registeredAt', type: 'uint48' }, { name: 'expiresAt', type: 'uint48' }, { name: 'reservedUntil', type: 'uint48' }, { name: 'referrer', type: 'address' }] },
+  { name: 'metadata', type: 'function', stateMutability: 'view', inputs: [{ name: 'nameHash', type: 'bytes32' }], outputs: [{ name: 'description', type: 'string' }, { name: 'avatarURL', type: 'string' }] },
+  { name: 'registrationFee', type: 'function', stateMutability: 'view', inputs: [], outputs: [{ name: '', type: 'uint256' }] },
+  { name: 'changeFee', type: 'function', stateMutability: 'view', inputs: [], outputs: [{ name: '', type: 'uint256' }] },
+  { name: 'expirationPeriod', type: 'function', stateMutability: 'view', inputs: [], outputs: [{ name: '', type: 'uint256' }] },
+  { name: 'nameOf', type: 'function', stateMutability: 'view', inputs: [{ name: 'nameHash', type: 'bytes32' }], outputs: [{ name: '', type: 'string' }] },
+] as const
+
 // ── Contract name type & addresses ───────────────────────────────────────────
 
-export type ContractName = 'token' | 'staking' | 'escrow' | 'pricing' | 'timelock' | 'delegation' | 'reputation' | 'verification'
+export type ContractName = 'token' | 'staking' | 'escrow' | 'pricing' | 'timelock' | 'delegation' | 'reputation' | 'verification' | 'registry'
 
 const ZERO = '0x0000000000000000000000000000000000000000' as const
 
@@ -124,7 +144,7 @@ type ContractAddresses = Record<ContractName, `0x${string}`>
 export const CONTRACTS: Record<number, ContractAddresses> = {
   [CHAIN_IDS.BASE_MAINNET]: {
     token: ZERO, staking: ZERO, escrow: ZERO, pricing: ZERO,
-    timelock: ZERO, delegation: ZERO, reputation: ZERO, verification: ZERO,
+    timelock: ZERO, delegation: ZERO, reputation: ZERO, verification: ZERO, registry: ZERO,
   },
   [CHAIN_IDS.BASE_SEPOLIA]: {
     token: '0x4cc3F5C0d2Ecb4118e214980906eFe5c880a6ceA',
@@ -135,11 +155,12 @@ export const CONTRACTS: Record<number, ContractAddresses> = {
     delegation: '0x071252B4f4bC80cccEccDe1A644229EE2dAf09F5',
     reputation: '0x55721fC66B30Fe26a0820CfDeffC0815135678Ed',
     verification: '0x9aA9Fc961da51dcFfF0232883631f7147CaBFBCD',
+    registry: '0x3559A7D2E6F09eA74a295e654e0D6C22F921D4b5',
   },
   [CHAIN_IDS.LOCAL]: {
     token: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
     staking: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
     escrow: '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0',
-    pricing: ZERO, timelock: ZERO, delegation: ZERO, reputation: ZERO, verification: ZERO,
+    pricing: ZERO, timelock: ZERO, delegation: ZERO, reputation: ZERO, verification: ZERO, registry: ZERO,
   },
 }

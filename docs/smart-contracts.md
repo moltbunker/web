@@ -2,7 +2,7 @@
 
 MoltBunker protocol smart contracts deployed on Base Sepolia testnet.
 
-> **Testnet Deployment**: All 8 contracts deployed February 13, 2026 on Base Sepolia (Chain ID: 84532). Verified on Basescan February 15, 2026.
+> **Testnet Deployment**: All 9 contracts deployed on Base Sepolia (Chain ID: 84532). Original 8 deployed February 13, 2026. BunkerRegistry deployed February 26, 2026. All verified on Basescan.
 
 ## Contract Addresses
 
@@ -16,6 +16,7 @@ MoltBunker protocol smart contracts deployed on Base Sepolia testnet.
 | BunkerReputation | [`0x55721fC66B30Fe26a0820CfDeffC0815135678Ed`](https://sepolia.basescan.org/address/0x55721fC66B30Fe26a0820CfDeffC0815135678Ed) | Provider reputation scoring |
 | BunkerVerification | [`0x9aA9Fc961da51dcFfF0232883631f7147CaBFBCD`](https://sepolia.basescan.org/address/0x9aA9Fc961da51dcFfF0232883631f7147CaBFBCD) | Hardware attestation |
 | BunkerTimelock | [`0xcD8af28808749CD4B55a970f14DA250C8EAEd3C9`](https://sepolia.basescan.org/address/0xcD8af28808749CD4B55a970f14DA250C8EAEd3C9) | Admin governance timelock |
+| BunkerRegistry | [`0x3559A7D2E6F09eA74a295e654e0D6C22F921D4b5`](https://sepolia.basescan.org/address/0x3559A7D2E6F09eA74a295e654e0D6C22F921D4b5) | Subdomain name registry |
 
 ## Contract Overview
 
@@ -60,6 +61,10 @@ Hardware attestation and provider verification. Providers submit proof of hardwa
 ### BunkerTimelock
 
 Admin governance contract with a minimum execution delay. All protocol parameter changes (pricing updates, slashing thresholds, reward rates) must pass through the timelock, giving the community time to review changes before execution.
+
+### BunkerRegistry
+
+On-chain subdomain name registry for `.moltbunker.dev` vanity names. Users register human-readable names (e.g., `myagent.moltbunker.dev`) that resolve to deployment IDs. Supports name registration, renewal, transfer, metadata, and release. Pricing is length-based — shorter names cost more. Names expire after a configurable period and can be renewed by the owner.
 
 ## Architecture
 
@@ -106,7 +111,7 @@ Admin governance contract with a minimum execution delay. All protocol parameter
 
 ## Verification Status
 
-All 8 contracts are source-code verified on Base Sepolia Basescan. You can read and interact with the contracts directly on the explorer:
+All 9 contracts are source-code verified on Base Sepolia Basescan. You can read and interact with the contracts directly on the explorer:
 
 - [BunkerToken](https://sepolia.basescan.org/address/0x4cc3F5C0d2Ecb4118e214980906eFe5c880a6ceA#code)
 - [BunkerStaking](https://sepolia.basescan.org/address/0xDC76d972a827D2a19867EF9aBD335014d5Cf7D6a#code)
@@ -116,6 +121,7 @@ All 8 contracts are source-code verified on Base Sepolia Basescan. You can read 
 - [BunkerReputation](https://sepolia.basescan.org/address/0x55721fC66B30Fe26a0820CfDeffC0815135678Ed#code)
 - [BunkerVerification](https://sepolia.basescan.org/address/0x9aA9Fc961da51dcFfF0232883631f7147CaBFBCD#code)
 - [BunkerTimelock](https://sepolia.basescan.org/address/0xcD8af28808749CD4B55a970f14DA250C8EAEd3C9#code)
+- [BunkerRegistry](https://sepolia.basescan.org/address/0x3559A7D2E6F09eA74a295e654e0D6C22F921D4b5#code)
 
 ## Next Steps
 

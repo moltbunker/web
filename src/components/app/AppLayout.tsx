@@ -3,7 +3,7 @@ import { Link, NavLink, Outlet } from 'react-router-dom'
 import { useAccount, useSwitchChain } from 'wagmi'
 import { baseSepolia } from 'wagmi/chains'
 import { motion, AnimatePresence } from 'framer-motion'
-import { LayoutDashboard, Rocket, Box, Globe, Coins, Server, Settings, ShieldCheck, Loader2, AlertTriangle, Menu, X } from 'lucide-react'
+import { LayoutDashboard, Rocket, Box, Globe, Coins, Server, Settings, ShieldCheck, Loader2, AlertTriangle, Menu, X, Zap, ScanSearch, Bot, Tag } from 'lucide-react'
 import WalletButton from '@/components/wallet/WalletButton'
 import Footer from '@/components/layout/Footer'
 import { useAuth } from '@/hooks/useApi'
@@ -50,6 +50,10 @@ function getNavItems(role: Role) {
     { to: '/app', icon: LayoutDashboard, label: 'Dashboard', end: true },
     { to: '/app/deploy', icon: Rocket, label: 'Deploy' },
     { to: '/app/containers', icon: Box, label: 'Containers' },
+    { to: '/app/molts', icon: Zap, label: 'Molts' },
+    { to: '/app/crawl', icon: ScanSearch, label: 'Crawl' },
+    { to: '/app/agents', icon: Bot, label: 'Agents' },
+    { to: '/app/registry', icon: Tag, label: 'Registry' },
     { to: '/app/nodes', icon: Globe, label: 'Nodes' },
     { to: '/app/billing', icon: Coins, label: 'Billing' },
     { to: '/app/provider', icon: Server, label: role === 'provider' ? 'My Node' : 'Provider' },
