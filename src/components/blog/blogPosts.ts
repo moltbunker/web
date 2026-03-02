@@ -9,6 +9,15 @@ export interface BlogPost {
 
 export const blogPosts: BlogPost[] = [
   {
+    slug: 'serverless-runtimes',
+    title: 'Molts: Serverless Runtimes on a Decentralized Network',
+    excerpt:
+      'Not every workload needs a full container. Molts bring dual-runtime serverless (WASM + JS/TS) to MoltBunker — functions that start in microseconds, run on any provider node, and cost fractions of a cent per invocation.',
+    date: '2026-03-02',
+    readingTime: '11 min read',
+    tags: ['Molts', 'Serverless', 'WebAssembly', 'Deno'],
+  },
+  {
     slug: 'web4-and-moltbunker',
     title: 'Web 4.0 and the Missing Infrastructure Layer',
     excerpt:

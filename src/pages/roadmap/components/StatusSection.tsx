@@ -17,6 +17,10 @@ const components = [
   { component: 'Provider Mode', progress: 85 },
   { component: 'Requester Mode', progress: 100 },
   { component: 'Testnet', progress: 100 },
+  { component: 'Molt Runtime (WASM + JS)', progress: 100 },
+  { component: 'Web Crawling', progress: 100 },
+  { component: 'AI Agent Runtime', progress: 100 },
+  { component: 'Subdomain Registry', progress: 100 },
   { component: 'Mainnet', progress: 85 },
 ]
 

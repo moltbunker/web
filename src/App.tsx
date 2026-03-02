@@ -18,6 +18,13 @@ const Nodes = lazy(() => import('@/pages/app/Nodes'))
 const Billing = lazy(() => import('@/pages/app/Billing'))
 const Provider = lazy(() => import('@/pages/app/Provider'))
 const Settings = lazy(() => import('@/pages/app/Settings'))
+const Molts = lazy(() => import('@/pages/app/Molts'))
+const MoltDetail = lazy(() => import('@/pages/app/MoltDetail'))
+const Crawl = lazy(() => import('@/pages/app/Crawl'))
+const CrawlDetail = lazy(() => import('@/pages/app/CrawlDetail'))
+const Agents = lazy(() => import('@/pages/app/Agents'))
+const AgentDetail = lazy(() => import('@/pages/app/AgentDetail'))
+const Registry = lazy(() => import('@/pages/app/Registry'))
 
 function LoadingSpinner() {
   return (
@@ -49,6 +56,13 @@ function AppShell() {
               <Route path="deploy" element={<Deploy />} />
               <Route path="containers" element={<Containers />} />
               <Route path="containers/:id" element={<ContainerDetail />} />
+              <Route path="molts" element={<Molts />} />
+              <Route path="molts/:id" element={<MoltDetail />} />
+              <Route path="crawl" element={<Crawl />} />
+              <Route path="crawl/:id" element={<CrawlDetail />} />
+              <Route path="agents" element={<Agents />} />
+              <Route path="agents/:id" element={<AgentDetail />} />
+              <Route path="registry" element={<Registry />} />
               <Route path="nodes" element={<Nodes />} />
               <Route path="billing" element={<Billing />} />
               <Route path="provider" element={<Provider />} />
