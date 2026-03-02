@@ -358,6 +358,230 @@ response = requests.get(
 
 ---
 
+## Molts (Serverless Functions)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/molt` | List all molt deployments |
+| GET | `/molt/{id}` | Get molt details |
+| POST | `/molt/deploy` | Deploy a new molt |
+| DELETE | `/molt/{id}` | Delete a molt |
+| POST | `/molt/{id}/stop` | Stop a running molt |
+| POST | `/molt/{id}/invoke` | Invoke a molt function |
+| GET | `/molt/{id}/metrics` | Get invocation metrics |
+| GET | `/molt/{id}/logs` | Get molt logs |
+
+### Deploy Molt
+
+```http
+POST /molt/deploy
+```
+
+**Request:**
+```json
+{
+  "name": "my-function",
+  "runtime_type": "wasm",
+  "module_cid": "bafyabc123...",
+  "entry_point": "handle_request",
+  "memory_limit_mb": 64,
+  "timeout_seconds": 30,
+  "env": { "API_KEY": "..." },
+  "allowed_hosts": ["api.example.com"]
+}
+```
+
+**Response:**
+```json
+{
+  "id": "molt_abc123",
+  "name": "my-function",
+  "status": "running",
+  "runtime_type": "wasm",
+  "created_at": "2026-03-01T12:00:00Z"
+}
+```
+
+### Invoke Molt
+
+```http
+POST /molt/{id}/invoke
+```
+
+**Request:**
+```json
+{
+  "method": "GET",
+  "path": "/data",
+  "headers": { "Accept": "application/json" },
+  "body": null
+}
+```
+
+**Response:**
+```json
+{
+  "status_code": 200,
+  "headers": { "Content-Type": "application/json" },
+  "body": "{\"result\": \"ok\"}",
+  "duration_ms": 12,
+  "memory_used_bytes": 2097152
+}
+```
+
+---
+
+## Web Crawling
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/crawl/jobs` | List all crawl jobs |
+| GET | `/crawl/jobs/{id}` | Get job details |
+| POST | `/crawl/jobs` | Create a new crawl job |
+| GET | `/crawl/jobs/{id}/results` | Get crawl results |
+| POST | `/crawl/jobs/{id}/cancel` | Cancel a running job |
+| POST | `/crawl/page` | Crawl a single page |
+| GET | `/crawl/stats` | Get aggregate statistics |
+
+### Create Crawl Job
+
+```http
+POST /crawl/jobs
+```
+
+**Request:**
+```json
+{
+  "urls": ["https://example.com"],
+  "max_depth": 3,
+  "max_pages": 100,
+  "allowed_domains": ["example.com"],
+  "selectors": { "title": "h1", "price": ".price" },
+  "options": {
+    "javascript": true,
+    "screenshot": false,
+    "tor": false,
+    "respect_robots": true
+  },
+  "timeout_seconds": 300
+}
+```
+
+**Response:**
+```json
+{
+  "id": "crawl_abc123",
+  "status": "pending",
+  "config": { ... },
+  "created_at": "2026-03-01T12:00:00Z"
+}
+```
+
+### Get Crawl Results
+
+```http
+GET /crawl/jobs/{id}/results
+```
+
+**Response:**
+```json
+[
+  {
+    "url": "https://example.com/page",
+    "status_code": 200,
+    "title": "Page Title",
+    "text": "Extracted text...",
+    "byte_size": 45230,
+    "duration_ms": 340,
+    "selectors": { "title": "Page Title", "price": "$29.99" },
+    "links": ["https://example.com/other"]
+  }
+]
+```
+
+---
+
+## AI Agents
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/agents` | List all agents |
+| GET | `/agents/{id}` | Get agent details |
+| POST | `/agents/deploy` | Deploy a new agent |
+| DELETE | `/agents/{id}` | Delete an agent |
+| POST | `/agents/{id}/stop` | Stop a running agent |
+| POST | `/agents/{id}/invoke` | Send message to agent |
+| GET | `/agents/{id}/memory` | List agent memory |
+| PUT | `/agents/{id}/memory` | Set memory entry |
+| DELETE | `/agents/{id}/memory/{key}` | Delete memory entry |
+
+### Deploy Agent
+
+```http
+POST /agents/deploy
+```
+
+**Request:**
+```json
+{
+  "name": "research-agent",
+  "framework": "langgraph",
+  "image": "bafyagent123...",
+  "config": {
+    "model": "claude-sonnet-4-20250514",
+    "temperature": 0.7
+  },
+  "env": { "ANTHROPIC_API_KEY": "sk-ant-..." },
+  "mcp_tools": [
+    { "name": "web-search", "server_url": "https://search.example.com/mcp" }
+  ],
+  "resources": {
+    "memory_mb": 512,
+    "cpu_millicores": 500,
+    "timeout_seconds": 300
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "id": "agent_abc123",
+  "name": "research-agent",
+  "status": "running",
+  "framework": "langgraph",
+  "created_at": "2026-03-01T12:00:00Z"
+}
+```
+
+### Invoke Agent
+
+```http
+POST /agents/{id}/invoke
+```
+
+**Request:**
+```json
+{
+  "input": "Research quantum computing developments",
+  "session_id": "session_abc"
+}
+```
+
+**Response:**
+```json
+{
+  "output": "Here are the key developments...",
+  "tokens_used": 1847,
+  "duration_ms": 3200,
+  "tool_calls": [
+    { "tool": "web-search", "query": "quantum computing 2026" }
+  ]
+}
+```
+
+---
+
 ## Next Steps
 
 - [SKILL.md](https://moltbunker.com/SKILL.md) - Complete machine-readable guide

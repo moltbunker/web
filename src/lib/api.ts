@@ -413,6 +413,172 @@ export interface CatalogConfig {
   version: number
 }
 
+// ─── Molts ───────────────────────────────────────────────────────────────────
+
+export type MoltRuntimeType = 'wasm' | 'js'
+export type MoltStatus = 'pending' | 'running' | 'stopped' | 'failed'
+
+export interface MoltSpec {
+  name: string
+  runtime: MoltRuntimeType
+  module_cid: string
+  entry_point?: string
+  memory_limit_mb?: number
+  timeout_ms?: number
+  env?: Record<string, string>
+  allowed_hosts?: string[]
+}
+
+export interface MoltDeployment {
+  id: string
+  spec: MoltSpec
+  status: MoltStatus
+  node_id?: string
+  created_at: string
+  started_at?: string
+  stopped_at?: string
+  error?: string
+  invocation_count: number
+  total_duration_ms: number
+}
+
+export interface MoltDeploymentMetrics {
+  deployment_id: string
+  invocations: number
+  errors: number
+  avg_duration_ms: number
+  total_duration_ms: number
+  memory_peak_bytes: number
+}
+
+export interface MoltInvokeRequest {
+  method: string
+  path: string
+  headers?: Record<string, string>
+  body?: string
+}
+
+export interface MoltInvokeResponse {
+  status_code: number
+  headers?: Record<string, string>
+  body?: string
+  duration_ms: number
+  memory_used_bytes: number
+  error?: string
+}
+
+// ─── Crawl ───────────────────────────────────────────────────────────────────
+
+export type CrawlJobStatus = 'pending' | 'running' | 'completed' | 'failed' | 'cancelled'
+
+export interface CrawlConfig {
+  urls: string[]
+  max_depth?: number
+  max_pages?: number
+  allowed_domains?: string[]
+  selectors?: string[]
+  screenshot?: boolean
+  javascript?: boolean
+  timeout_sec?: number
+  respect_robots?: boolean
+  use_tor?: boolean
+}
+
+export interface CrawlJob {
+  id: string
+  owner: string
+  status: CrawlJobStatus
+  config: CrawlConfig
+  created_at: string
+  started_at?: string
+  completed_at?: string
+  error?: string
+  pages_crawled: number
+  total_bytes: number
+}
+
+export interface CrawlResult {
+  url: string
+  status_code: number
+  content_type?: string
+  title?: string
+  text?: string
+  links?: string[]
+  selectors?: Record<string, string>
+  crawled_at: string
+  duration_ms: number
+  error?: string
+  byte_size: number
+}
+
+export interface CrawlStats {
+  total_jobs: number
+  running_jobs: number
+  completed_jobs: number
+  failed_jobs: number
+  total_pages: number
+  total_bytes: number
+}
+
+// ─── Agents ──────────────────────────────────────────────────────────────────
+
+export type AgentStatus = 'pending' | 'starting' | 'running' | 'stopped' | 'failed'
+export type AgentFramework = 'langgraph' | 'crewai' | 'autogen' | 'custom'
+
+export interface MCPToolDef {
+  name: string
+  description: string
+  parameters?: Record<string, string>
+}
+
+export interface AgentSpec {
+  name: string
+  framework: AgentFramework
+  image?: string
+  config?: Record<string, string>
+  env?: Record<string, string>
+  mcp_tools?: MCPToolDef[]
+  memory_bucket?: string
+  max_tokens?: number
+  timeout_sec?: number
+  memory_limit_mb?: number
+  cpu_cores?: number
+}
+
+export interface AgentDeployment {
+  id: string
+  spec: AgentSpec
+  status: AgentStatus
+  container_id?: string
+  node_id?: string
+  created_at: string
+  started_at?: string
+  stopped_at?: string
+  error?: string
+  tokens_used: number
+  invocation_count: number
+  total_cost_wei?: string
+}
+
+export interface AgentInvokeRequest {
+  message: string
+  context?: Record<string, string>
+}
+
+export interface AgentInvokeResponse {
+  agent_id: string
+  response: string
+  tokens_used: number
+  duration_ms: number
+  error?: string
+}
+
+export interface MemoryEntry {
+  key: string
+  value: string
+  updated_at: string
+}
+
 // ─── Client ──────────────────────────────────────────────────────────────────
 
 export class ApiClient {
@@ -680,5 +846,115 @@ export class ApiClient {
   execWebSocketUrl(nonce: string, signature: string, cols: number, rows: number): string {
     const wsBase = import.meta.env.VITE_WS_BASE_URL || this.baseUrl.replace(/^http/, 'ws')
     return `${wsBase}/v1/exec/ws?nonce=${encodeURIComponent(nonce)}&signature=${encodeURIComponent(signature)}&cols=${cols}&rows=${rows}`
+  }
+
+  // ── Molts ──────────────────────────────────────
+
+  listMolts() {
+    return this.request<MoltDeployment[]>('GET', '/v1/molt/list')
+  }
+
+  getMolt(id: string) {
+    return this.request<MoltDeployment>('GET', `/v1/molt/${id}`)
+  }
+
+  deployMolt(spec: MoltSpec) {
+    return this.request<MoltDeployment>('POST', '/v1/molt/deploy', spec)
+  }
+
+  deleteMolt(id: string) {
+    return this.request<void>('DELETE', `/v1/molt/${id}`)
+  }
+
+  stopMolt(id: string) {
+    return this.request<void>('POST', `/v1/molt/${id}/stop`)
+  }
+
+  invokeMolt(id: string, req: MoltInvokeRequest) {
+    return this.request<MoltInvokeResponse>('POST', `/v1/molt/${id}/invoke`, req)
+  }
+
+  getMoltMetrics(id: string) {
+    return this.request<MoltDeploymentMetrics>('GET', `/v1/molt/${id}/metrics`)
+  }
+
+  async getMoltLogs(id: string, tail?: number): Promise<LogEntry[]> {
+    const query = tail ? `?tail=${tail}` : ''
+    const res = await this.request<{ logs: string }>('GET', `/v1/molt/${id}/logs${query}`)
+    const raw = res.logs ?? ''
+    if (!raw) return []
+    return raw.split('\n').filter(Boolean).map((line) => {
+      const m = line.match(/^\[([^\]]*)\]\s*(.*)$/)
+      if (m) return { timestamp: m[1], level: 'info', message: m[2] }
+      return { timestamp: '', level: '', message: line }
+    })
+  }
+
+  // ── Crawl ──────────────────────────────────────
+
+  listCrawlJobs() {
+    return this.request<CrawlJob[]>('GET', '/v1/crawl/jobs')
+  }
+
+  getCrawlJob(id: string) {
+    return this.request<CrawlJob>('GET', `/v1/crawl/jobs/${id}`)
+  }
+
+  createCrawlJob(config: CrawlConfig) {
+    return this.request<CrawlJob>('POST', '/v1/crawl/jobs', config)
+  }
+
+  getCrawlResults(id: string) {
+    return this.request<CrawlResult[]>('GET', `/v1/crawl/jobs/${id}/results`)
+  }
+
+  cancelCrawlJob(id: string) {
+    return this.request<void>('POST', `/v1/crawl/jobs/${id}/cancel`)
+  }
+
+  crawlSinglePage(url: string) {
+    return this.request<CrawlResult>('POST', '/v1/crawl/pages', { url })
+  }
+
+  getCrawlStats() {
+    return this.request<CrawlStats>('GET', '/v1/crawl/stats')
+  }
+
+  // ── Agents ─────────────────────────────────────
+
+  listAgents() {
+    return this.request<AgentDeployment[]>('GET', '/v1/agents')
+  }
+
+  getAgent(id: string) {
+    return this.request<AgentDeployment>('GET', `/v1/agents/${id}`)
+  }
+
+  deployAgent(spec: AgentSpec) {
+    return this.request<AgentDeployment>('POST', '/v1/agents', spec)
+  }
+
+  deleteAgent(id: string) {
+    return this.request<void>('DELETE', `/v1/agents/${id}`)
+  }
+
+  invokeAgent(id: string, req: AgentInvokeRequest) {
+    return this.request<AgentInvokeResponse>('POST', `/v1/agents/${id}/invoke`, req)
+  }
+
+  stopAgent(id: string) {
+    return this.request<void>('POST', `/v1/agents/${id}/stop`)
+  }
+
+  listAgentMemory(id: string) {
+    return this.request<MemoryEntry[]>('GET', `/v1/agents/${id}/memory`)
+  }
+
+  setAgentMemory(id: string, entry: { key: string; value: string }) {
+    return this.request<void>('POST', `/v1/agents/${id}/memory`, entry)
+  }
+
+  deleteAgentMemory(id: string, key: string) {
+    return this.request<void>('DELETE', `/v1/agents/${id}/memory?key=${encodeURIComponent(key)}`)
   }
 }

@@ -1,6 +1,6 @@
 import { useContext, createContext } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import type { ApiClient, DeployRequest, ReserveRequest, BotRequest, SnapshotRequest, RestoreRequest, CloneRequest, ApiKeyRequest } from '@/lib/api'
+import type { ApiClient, DeployRequest, ReserveRequest, BotRequest, SnapshotRequest, RestoreRequest, CloneRequest, ApiKeyRequest, MoltSpec, MoltInvokeRequest, CrawlConfig, AgentSpec, AgentInvokeRequest } from '@/lib/api'
 import type { AuthState } from '@/lib/auth'
 
 // ─── Context ─────────────────────────────────────────────────────────────────
@@ -43,6 +43,17 @@ const keys = {
   snapshots: ['snapshots'] as const,
   clones: ['clones'] as const,
   apiKeys: ['api-keys'] as const,
+  molts: ['molts'] as const,
+  molt: (id: string) => ['molts', id] as const,
+  moltMetrics: (id: string) => ['molts', id, 'metrics'] as const,
+  moltLogs: (id: string) => ['molts', id, 'logs'] as const,
+  crawlJobs: ['crawl-jobs'] as const,
+  crawlJob: (id: string) => ['crawl-jobs', id] as const,
+  crawlResults: (id: string) => ['crawl-jobs', id, 'results'] as const,
+  crawlStats: ['crawl-stats'] as const,
+  agents: ['agents'] as const,
+  agent: (id: string) => ['agents', id] as const,
+  agentMemory: (id: string) => ['agents', id, 'memory'] as const,
 }
 
 // ─── Query Hooks ─────────────────────────────────────────────────────────────
@@ -317,6 +328,250 @@ export function useDeleteApiKey() {
     mutationFn: (id: string) => client.deleteApiKey(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: keys.apiKeys })
+    },
+  })
+}
+
+// ─── Molt Hooks ─────────────────────────────────────────────────────────────
+
+export function useMolts() {
+  const { client, auth } = useApiClient()
+  return useQuery({
+    queryKey: keys.molts,
+    queryFn: () => client.listMolts(),
+    enabled: auth.isAuthenticated,
+    refetchInterval: 15_000,
+  })
+}
+
+export function useMolt(id: string) {
+  const { client, auth } = useApiClient()
+  return useQuery({
+    queryKey: keys.molt(id),
+    queryFn: () => client.getMolt(id),
+    enabled: auth.isAuthenticated && !!id,
+    refetchInterval: 5_000,
+  })
+}
+
+export function useMoltMetrics(id: string) {
+  const { client, auth } = useApiClient()
+  return useQuery({
+    queryKey: keys.moltMetrics(id),
+    queryFn: () => client.getMoltMetrics(id),
+    enabled: auth.isAuthenticated && !!id,
+    refetchInterval: 10_000,
+  })
+}
+
+export function useMoltLogs(id: string) {
+  const { client, auth } = useApiClient()
+  return useQuery({
+    queryKey: keys.moltLogs(id),
+    queryFn: () => client.getMoltLogs(id, 200),
+    enabled: auth.isAuthenticated && !!id,
+    refetchInterval: 3_000,
+  })
+}
+
+export function useDeployMolt() {
+  const { client } = useApiClient()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (spec: MoltSpec) => client.deployMolt(spec),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: keys.molts })
+    },
+  })
+}
+
+export function useStopMolt() {
+  const { client } = useApiClient()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => client.stopMolt(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: keys.molts })
+    },
+  })
+}
+
+export function useDeleteMolt() {
+  const { client } = useApiClient()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => client.deleteMolt(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: keys.molts })
+    },
+  })
+}
+
+export function useInvokeMolt() {
+  const { client } = useApiClient()
+  return useMutation({
+    mutationFn: ({ id, req }: { id: string; req: MoltInvokeRequest }) =>
+      client.invokeMolt(id, req),
+  })
+}
+
+// ─── Crawl Hooks ────────────────────────────────────────────────────────────
+
+export function useCrawlJobs() {
+  const { client, auth } = useApiClient()
+  return useQuery({
+    queryKey: keys.crawlJobs,
+    queryFn: () => client.listCrawlJobs(),
+    enabled: auth.isAuthenticated,
+    refetchInterval: 10_000,
+  })
+}
+
+export function useCrawlJob(id: string) {
+  const { client, auth } = useApiClient()
+  return useQuery({
+    queryKey: keys.crawlJob(id),
+    queryFn: () => client.getCrawlJob(id),
+    enabled: auth.isAuthenticated && !!id,
+    refetchInterval: 5_000,
+  })
+}
+
+export function useCrawlResults(id: string) {
+  const { client, auth } = useApiClient()
+  return useQuery({
+    queryKey: keys.crawlResults(id),
+    queryFn: () => client.getCrawlResults(id),
+    enabled: auth.isAuthenticated && !!id,
+  })
+}
+
+export function useCrawlStats() {
+  const { client, auth } = useApiClient()
+  return useQuery({
+    queryKey: keys.crawlStats,
+    queryFn: () => client.getCrawlStats(),
+    enabled: auth.isAuthenticated,
+    refetchInterval: 30_000,
+  })
+}
+
+export function useCreateCrawlJob() {
+  const { client } = useApiClient()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (config: CrawlConfig) => client.createCrawlJob(config),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: keys.crawlJobs })
+      qc.invalidateQueries({ queryKey: keys.crawlStats })
+    },
+  })
+}
+
+export function useCancelCrawlJob() {
+  const { client } = useApiClient()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => client.cancelCrawlJob(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: keys.crawlJobs })
+      qc.invalidateQueries({ queryKey: keys.crawlStats })
+    },
+  })
+}
+
+// ─── Agent Hooks ────────────────────────────────────────────────────────────
+
+export function useAgents() {
+  const { client, auth } = useApiClient()
+  return useQuery({
+    queryKey: keys.agents,
+    queryFn: () => client.listAgents(),
+    enabled: auth.isAuthenticated,
+    refetchInterval: 15_000,
+  })
+}
+
+export function useAgent(id: string) {
+  const { client, auth } = useApiClient()
+  return useQuery({
+    queryKey: keys.agent(id),
+    queryFn: () => client.getAgent(id),
+    enabled: auth.isAuthenticated && !!id,
+    refetchInterval: 5_000,
+  })
+}
+
+export function useAgentMemory(id: string) {
+  const { client, auth } = useApiClient()
+  return useQuery({
+    queryKey: keys.agentMemory(id),
+    queryFn: () => client.listAgentMemory(id),
+    enabled: auth.isAuthenticated && !!id,
+  })
+}
+
+export function useDeployAgent() {
+  const { client } = useApiClient()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (spec: AgentSpec) => client.deployAgent(spec),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: keys.agents })
+    },
+  })
+}
+
+export function useStopAgent() {
+  const { client } = useApiClient()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => client.stopAgent(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: keys.agents })
+    },
+  })
+}
+
+export function useDeleteAgent() {
+  const { client } = useApiClient()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => client.deleteAgent(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: keys.agents })
+    },
+  })
+}
+
+export function useInvokeAgent() {
+  const { client } = useApiClient()
+  return useMutation({
+    mutationFn: ({ id, req }: { id: string; req: AgentInvokeRequest }) =>
+      client.invokeAgent(id, req),
+  })
+}
+
+export function useSetAgentMemory() {
+  const { client } = useApiClient()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, entry }: { id: string; entry: { key: string; value: string } }) =>
+      client.setAgentMemory(id, entry),
+    onSuccess: (_data, vars) => {
+      qc.invalidateQueries({ queryKey: keys.agentMemory(vars.id) })
+    },
+  })
+}
+
+export function useDeleteAgentMemory() {
+  const { client } = useApiClient()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, key }: { id: string; key: string }) =>
+      client.deleteAgentMemory(id, key),
+    onSuccess: (_data, vars) => {
+      qc.invalidateQueries({ queryKey: keys.agentMemory(vars.id) })
     },
   })
 }
