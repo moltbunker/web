@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Layers, Shield, FileCode, Terminal, Rocket, Globe, Sparkles, GitBranch } from 'lucide-react'
+import { Layers, Shield, FileCode, Terminal, Rocket, Globe, Sparkles, GitBranch, Zap } from 'lucide-react'
 import TimelineItem from './TimelineItem'
 
 const milestones = [
@@ -33,7 +33,7 @@ const milestones = [
     title: 'Smart Contracts',
     phase: 'Phase 3',
     items: [
-      '8 protocol contracts deployed on Base Sepolia',
+      '9 protocol contracts deployed on Base Sepolia',
       '5-tier staking system with Synthetix-style rewards',
       'Job escrow with 3-provider selection and progressive release',
       'All contracts verified on Basescan — Feb 15, 2026',
@@ -74,8 +74,21 @@ const milestones = [
       'P2P network hardening and performance optimization',
       'Threat detection ML model improvements',
     ],
-    status: 'current' as const,
+    status: 'complete' as const,
     icon: Globe,
+  },
+  {
+    title: 'Serverless & Services',
+    phase: 'Phase 7',
+    items: [
+      'Molts — dual-runtime serverless (WASM via wazero + JS/TS via Deno)',
+      'Web crawling service with JS rendering, Tor routing, CSS extraction',
+      'AI agent runtime with LangGraph, CrewAI, AutoGen framework support',
+      'BunkerRegistry — on-chain subdomain system with .moltbunker.dev names',
+      '12 host functions for HTTP, storage, and crawling from WASM/JS',
+    ],
+    status: 'current' as const,
+    icon: Zap,
   },
   {
     title: 'Mainnet',

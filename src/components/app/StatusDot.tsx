@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 
-type Status = 'running' | 'deploying' | 'stopped' | 'error' | 'pending' | 'created' | 'paused' | 'failed' | 'replicating'
+type Status = 'running' | 'deploying' | 'stopped' | 'error' | 'pending' | 'created' | 'paused' | 'failed' | 'replicating' | 'completed' | 'cancelled' | 'starting'
 
 const config: Record<Status, { color: string; animate: 'pulse' | 'spin' | 'none'; glow?: string }> = {
   running:     { color: 'bg-green-400', animate: 'pulse' },
@@ -12,6 +12,9 @@ const config: Record<Status, { color: string; animate: 'pulse' | 'spin' | 'none'
   stopped:     { color: 'bg-zinc-500', animate: 'none' },
   error:       { color: 'bg-red-400', animate: 'pulse', glow: 'shadow-[0_0_8px_rgba(239,68,68,0.5)]' },
   failed:      { color: 'bg-red-400', animate: 'pulse', glow: 'shadow-[0_0_8px_rgba(239,68,68,0.5)]' },
+  completed:   { color: 'bg-green-400', animate: 'none' },
+  cancelled:   { color: 'bg-zinc-500', animate: 'none' },
+  starting:    { color: 'bg-amber-400', animate: 'spin' },
 }
 
 interface StatusDotProps {
