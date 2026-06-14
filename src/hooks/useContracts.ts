@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 import type { Abi } from 'viem'
-import { CONTRACTS, BUNKER_TOKEN_ABI, BUNKER_STAKING_ABI, BUNKER_REGISTRY_ABI } from '@/lib/contracts'
+import { CONTRACTS, BUNKER_TOKEN_ABI, BUNKER_STAKING_ABI, BUNKER_REGISTRY_ABI, isZeroAddress } from '@/lib/contracts'
 import type { ContractName } from '@/lib/contracts'
 
 /** Resolve a contract address for the connected chain. */
@@ -11,8 +11,21 @@ export function useContractAddress(contract: ContractName): `0x${string}` | unde
   const addrs = CONTRACTS[chain.id]
   if (!addrs) return undefined
   const addr = addrs[contract]
-  if (addr === '0x0000000000000000000000000000000000000000') return undefined
+  if (isZeroAddress(addr)) return undefined
   return addr
+}
+
+/**
+ * True when the active chain has at least one non-zero contract address.
+ * Used to surface a "contracts not configured" banner instead of silently
+ * no-oping every on-chain read/write (e.g. on Base Mainnet before cutover).
+ */
+export function useAddressesReady(): boolean {
+  const { chain } = useAccount()
+  if (!chain) return false
+  const addrs = CONTRACTS[chain.id]
+  if (!addrs) return false
+  return Object.values(addrs).some((addr) => !isZeroAddress(addr))
 }
 
 /** Read a single view function, auto-refreshing every 60s. */

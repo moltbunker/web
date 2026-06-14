@@ -6,6 +6,7 @@ import Home from '@/pages/Home'
 import Docs from '@/pages/Docs'
 import WhitepaperPage from '@/pages/Whitepaper'
 import NotFound from '@/pages/NotFound'
+import { EDGE_UI_ENABLED } from '@/lib/features'
 
 const Blog = lazy(() => import('@/pages/Blog'))
 const Roadmap = lazy(() => import('@/pages/roadmap'))
@@ -25,6 +26,12 @@ const CrawlDetail = lazy(() => import('@/pages/app/CrawlDetail'))
 const Agents = lazy(() => import('@/pages/app/Agents'))
 const AgentDetail = lazy(() => import('@/pages/app/AgentDetail'))
 const Registry = lazy(() => import('@/pages/app/Registry'))
+
+// Edge / WAF UI behind the VITE_EDGE_UI flag — only loaded when enabled so the
+// default production bundle is unaffected.
+const EdgeRules = EDGE_UI_ENABLED ? lazy(() => import('@/pages/app/EdgeRules')) : null
+const EdgeHostnames = EDGE_UI_ENABLED ? lazy(() => import('@/pages/app/EdgeHostnames')) : null
+const EdgeRateLimit = EDGE_UI_ENABLED ? lazy(() => import('@/pages/app/EdgeRateLimit')) : null
 
 function LoadingSpinner() {
   return (
@@ -63,6 +70,13 @@ function AppShell() {
               <Route path="agents" element={<Agents />} />
               <Route path="agents/:id" element={<AgentDetail />} />
               <Route path="registry" element={<Registry />} />
+              {EDGE_UI_ENABLED && (
+                <>
+                  <Route path="edge/rules" element={EdgeRules ? <EdgeRules /> : <NotFound />} />
+                  <Route path="edge/hostnames" element={EdgeHostnames ? <EdgeHostnames /> : <NotFound />} />
+                  <Route path="edge/rate-limit" element={EdgeRateLimit ? <EdgeRateLimit /> : <NotFound />} />
+                </>
+              )}
               <Route path="nodes" element={<Nodes />} />
               <Route path="billing" element={<Billing />} />
               <Route path="provider" element={<Provider />} />
