@@ -1,6 +1,9 @@
 // Typed API client for MoltBunker REST API (/v1/*)
 // All types derived from api/openapi.yaml
 
+import { parsePrometheusText } from '@/lib/metrics-parser'
+import type { MetricSample } from '@/lib/metrics-parser'
+
 // ─── Error ───────────────────────────────────────────────────────────────────
 
 export class ApiError extends Error {
@@ -579,6 +582,65 @@ export interface MemoryEntry {
   updated_at: string
 }
 
+// ─── Metrics ───────────────────────────────────────────────────────────────────
+
+/** A single parsed sample from the daemon's Prometheus `/v1/metrics` output. */
+export type ContainerMetricSample = MetricSample
+
+// ─── Edge / WAF (EDGE-01 / EDGE-02 API shape) ──────────────────────────────────
+// These types mirror the anticipated edge-provider API. The client methods are
+// fully typed but the daemon endpoints may not be live yet. Like every other
+// client method they go through `request()`, which THROWS an `ApiError` on any
+// non-2xx (including the 404s expected until the edge layer ships); the
+// consuming React Query hooks/pages tolerate that by defaulting to empty lists /
+// default config in their render path, so the UI degrades gracefully.
+
+export type EdgeRuleType = 'block' | 'allow' | 'rate_limit'
+
+export interface EdgeRule {
+  id: string
+  container_id: string
+  type: EdgeRuleType
+  pattern: string
+  action: string
+  priority: number
+  enabled: boolean
+}
+
+export interface CreateEdgeRuleRequest {
+  container_id: string
+  type: EdgeRuleType
+  pattern: string
+  action: string
+  priority: number
+  enabled: boolean
+}
+
+export type CustomHostnameStatus = 'pending' | 'active' | 'error'
+
+export interface CustomHostname {
+  id: string
+  container_id: string
+  hostname: string
+  status: CustomHostnameStatus
+  acme_challenge?: string
+  created_at: string
+}
+
+export interface AddCustomHostnameRequest {
+  container_id: string
+  hostname: string
+}
+
+export type RateLimitBy = 'ip' | 'header'
+
+export interface RateLimitConfig {
+  container_id: string
+  requests_per_minute: number
+  burst: number
+  by: RateLimitBy
+}
+
 // ─── Client ──────────────────────────────────────────────────────────────────
 
 export class ApiClient {
@@ -750,6 +812,33 @@ export class ApiClient {
       }
       return { timestamp: '', level: '', message: line }
     })
+  }
+
+  /**
+   * Fetch per-container metrics in Prometheus text-exposition format and parse
+   * them into structured samples. Returns `[]` if the endpoint is absent (404)
+   * so the Metrics tab can fall back to its "coming soon" placeholder.
+   */
+  async fetchContainerMetrics(id: string): Promise<ContainerMetricSample[]> {
+    const headers: Record<string, string> = { Accept: 'text/plain' }
+    if (this.token) headers['Authorization'] = `Bearer ${this.token}`
+
+    const res = await fetch(`${this.baseUrl}/v1/containers/${id}/metrics`, {
+      method: 'GET',
+      headers,
+    })
+
+    if (res.status === 404) return []
+    if (!res.ok) {
+      if (res.status === 401) {
+        this.clearToken()
+        this.onUnauthorized?.()
+      }
+      throw new ApiError(res.status, res.statusText, `metrics error ${res.status}`)
+    }
+
+    const text = await res.text()
+    return parsePrometheusText(text)
   }
 
   // ── Deployments ───────────────────────────────
@@ -956,5 +1045,43 @@ export class ApiClient {
 
   deleteAgentMemory(id: string, key: string) {
     return this.request<void>('DELETE', `/v1/agents/${id}/memory?key=${encodeURIComponent(key)}`)
+  }
+
+  // ── Edge / WAF (EDGE-01 / EDGE-02) ─────────────
+  // Endpoints are stubbed against the anticipated edge-provider API shape and
+  // will 404 until the daemon edge layer ships. These calls THROW an ApiError on
+  // that 404 (same as every other request()); the consuming hooks/pages tolerate
+  // it by rendering empty lists / default rate-limit config.
+
+  listEdgeRules(containerId: string) {
+    return this.request<EdgeRule[]>('GET', `/v1/edge/rules?container_id=${encodeURIComponent(containerId)}`)
+  }
+
+  createEdgeRule(rule: CreateEdgeRuleRequest) {
+    return this.request<EdgeRule>('POST', '/v1/edge/rules', rule)
+  }
+
+  deleteEdgeRule(id: string) {
+    return this.request<void>('DELETE', `/v1/edge/rules/${id}`)
+  }
+
+  listCustomHostnames(containerId: string) {
+    return this.request<CustomHostname[]>('GET', `/v1/edge/hostnames?container_id=${encodeURIComponent(containerId)}`)
+  }
+
+  addCustomHostname(req: AddCustomHostnameRequest) {
+    return this.request<CustomHostname>('POST', '/v1/edge/hostnames', req)
+  }
+
+  deleteCustomHostname(id: string) {
+    return this.request<void>('DELETE', `/v1/edge/hostnames/${id}`)
+  }
+
+  getRateLimitConfig(containerId: string) {
+    return this.request<RateLimitConfig>('GET', `/v1/edge/rate-limit?container_id=${encodeURIComponent(containerId)}`)
+  }
+
+  setRateLimitConfig(cfg: RateLimitConfig) {
+    return this.request<RateLimitConfig>('PUT', '/v1/edge/rate-limit', cfg)
   }
 }
