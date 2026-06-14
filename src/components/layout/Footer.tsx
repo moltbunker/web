@@ -7,7 +7,7 @@ const Footer = () => {
   return (
     <footer className="border-t border-zinc-900 bg-black relative z-10">
       <div className="max-w-6xl mx-auto px-6 py-10">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
           {/* Brand */}
           <div className="col-span-1 md:col-span-2">
             <Link to="/" className="flex items-center gap-2 mb-3">
@@ -41,6 +41,33 @@ const Footer = () => {
                 >
                   SKILL.md
                 </a>
+              </li>
+            </ul>
+          </div>
+
+          {/* Legal */}
+          <div>
+            <h3 className="text-xs font-medium text-zinc-400 uppercase tracking-wide mb-3">Legal</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link to="/legal/terms" className="text-sm text-zinc-500 hover:text-white transition-colors">
+                  Terms of Service
+                </Link>
+              </li>
+              <li>
+                <Link to="/legal/aup" className="text-sm text-zinc-500 hover:text-white transition-colors">
+                  Acceptable Use
+                </Link>
+              </li>
+              <li>
+                <Link to="/legal/privacy" className="text-sm text-zinc-500 hover:text-white transition-colors">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link to="/legal/dmca" className="text-sm text-zinc-500 hover:text-white transition-colors">
+                  DMCA / Takedown
+                </Link>
               </li>
             </ul>
           </div>
@@ -90,10 +117,21 @@ const Footer = () => {
                 Aus Dev Labs
               </a>
             </p>
-            <p className="text-xs text-zinc-600 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Live on Base Sepolia
-            </p>
+            <div className="flex flex-col items-center gap-2 sm:flex-row sm:gap-4">
+              <p className="text-xs text-zinc-600">
+                Abuse contact:{' '}
+                <a
+                  href="mailto:abuse@moltbunker.com"
+                  className="text-zinc-500 hover:text-white transition-colors"
+                >
+                  abuse@moltbunker.com
+                </a>
+              </p>
+              <p className="text-xs text-zinc-600 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Live on Base Sepolia
+              </p>
+            </div>
           </div>
         </div>
       </div>
