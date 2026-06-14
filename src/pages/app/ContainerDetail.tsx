@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, Square, Trash2, Copy, Check, Play } from 'lucide-react'
 import StatusDot from '@/components/app/StatusDot'
 import TerminalLog from '@/components/app/TerminalLog'
+import ContainerMetricsTab from '@/components/app/ContainerMetricsTab'
 import { useContainer, useContainerLogs, useStopContainer, useStartContainer, useDeleteContainer } from '@/hooks/useApi'
 
 const Terminal = lazy(() => import('@/components/app/Terminal'))
@@ -192,10 +193,7 @@ export default function ContainerDetail() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
           >
-            <div className="bg-black border border-zinc-800 rounded-lg px-4 py-12 text-center">
-              <p className="text-sm text-zinc-500">Container metrics coming soon.</p>
-              <p className="text-xs text-zinc-600 mt-1">Prometheus integration pending.</p>
-            </div>
+            <ContainerMetricsTab containerId={id ?? ''} />
           </motion.div>
         )}
 

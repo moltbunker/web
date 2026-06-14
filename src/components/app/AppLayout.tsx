@@ -9,6 +9,8 @@ import Footer from '@/components/layout/Footer'
 import { useAuth } from '@/hooks/useApi'
 import { useRole } from '@/hooks/useRole'
 import type { Role } from '@/hooks/useRole'
+import { useAddressesReady } from '@/hooks/useContracts'
+import { EDGE_UI_ENABLED } from '@/lib/features'
 
 const REQUIRED_CHAIN_ID = baseSepolia.id // 84532
 
@@ -45,7 +47,14 @@ function ChainBadge() {
   )
 }
 
-function getNavItems(role: Role) {
+interface NavItem {
+  to: string
+  icon: typeof LayoutDashboard
+  label: string
+  end?: boolean
+}
+
+function getNavItems(role: Role): NavItem[] {
   return [
     { to: '/app', icon: LayoutDashboard, label: 'Dashboard', end: true },
     { to: '/app/deploy', icon: Rocket, label: 'Deploy' },
@@ -54,6 +63,7 @@ function getNavItems(role: Role) {
     { to: '/app/crawl', icon: ScanSearch, label: 'Crawl' },
     { to: '/app/agents', icon: Bot, label: 'Agents' },
     { to: '/app/registry', icon: Tag, label: 'Registry' },
+    ...(EDGE_UI_ENABLED ? [{ to: '/app/edge/rules', icon: ShieldCheck, label: 'Edge' }] : []),
     { to: '/app/nodes', icon: Globe, label: 'Nodes' },
     { to: '/app/billing', icon: Coins, label: 'Billing' },
     { to: '/app/provider', icon: Server, label: role === 'provider' ? 'My Node' : 'Provider' },
@@ -62,13 +72,22 @@ function getNavItems(role: Role) {
 }
 
 export default function AppLayout() {
-  const { isConnected } = useAccount()
+  const { isConnected, chain } = useAccount()
   const { isAuthenticated, authenticate } = useAuth()
   const role = useRole()
   const navItems = getNavItems(role)
+  const addressesReady = useAddressesReady()
   const [signing, setSigning] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [bannerDismissed, setBannerDismissed] = useState(false)
+
+  // Fire on any connected chain whose manifest has every contract zeroed (today
+  // that is only Base Mainnet pre-cutover; LOCAL/Anvil has a non-zero token so
+  // addressesReady is true there and this stays quiet). Generalising off the
+  // hardcoded mainnet id means a future un-configured chain still warns instead
+  // of silently no-oping every on-chain read/write.
+  const showAddressesBanner = !!chain && !addressesReady && !bannerDismissed
 
   const handleSign = async () => {
     setSigning(true)
@@ -265,6 +284,32 @@ export default function AppLayout() {
           )}
         </AnimatePresence>
       </header>
+
+      {/* Contracts-not-configured banner (fires on any chain with no deployed addresses) */}
+      <AnimatePresence>
+        {showAddressesBanner && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="bg-amber-500/10 border-b border-amber-500/30 overflow-hidden"
+          >
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 py-2.5 flex items-center gap-2.5">
+              <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+              <p className="text-xs text-amber-400 flex-1">
+                Contracts not yet configured on {chain?.name ?? 'this network'} — transactions will fail.
+              </p>
+              <button
+                onClick={() => setBannerDismissed(true)}
+                className="p-1 text-amber-400/70 hover:text-amber-300 transition-colors -mr-1"
+                aria-label="Dismiss"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Main content */}
       <main className="flex-1 overflow-y-auto flex flex-col">
