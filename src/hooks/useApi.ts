@@ -1,6 +1,6 @@
 import { useContext, createContext } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import type { ApiClient, DeployRequest, ReserveRequest, BotRequest, SnapshotRequest, RestoreRequest, CloneRequest, ApiKeyRequest, MoltSpec, MoltInvokeRequest, CrawlConfig, AgentSpec, AgentInvokeRequest } from '@/lib/api'
+import type { ApiClient, DeployRequest, ReserveRequest, BotRequest, SnapshotRequest, RestoreRequest, CloneRequest, ApiKeyRequest, MoltSpec, MoltInvokeRequest, CrawlConfig, AgentSpec, AgentInvokeRequest, CreateEdgeRuleRequest, AddCustomHostnameRequest, RateLimitConfig } from '@/lib/api'
 import type { AuthState } from '@/lib/auth'
 
 // ─── Context ─────────────────────────────────────────────────────────────────
@@ -35,6 +35,7 @@ const keys = {
   containers: ['containers'] as const,
   container: (id: string) => ['containers', id] as const,
   containerLogs: (id: string) => ['containers', id, 'logs'] as const,
+  containerMetrics: (id: string) => ['containers', id, 'metrics'] as const,
   deployments: ['deployments'] as const,
   deployment: (id: string) => ['deployments', id] as const,
   bots: ['bots'] as const,
@@ -54,6 +55,9 @@ const keys = {
   agents: ['agents'] as const,
   agent: (id: string) => ['agents', id] as const,
   agentMemory: (id: string) => ['agents', id, 'memory'] as const,
+  edgeRules: (id: string) => ['edge', 'rules', id] as const,
+  customHostnames: (id: string) => ['edge', 'hostnames', id] as const,
+  rateLimitConfig: (id: string) => ['edge', 'rate-limit', id] as const,
 }
 
 // ─── Query Hooks ─────────────────────────────────────────────────────────────
@@ -124,6 +128,16 @@ export function useContainerLogs(id: string) {
     queryFn: () => client.getContainerLogs(id, 200),
     enabled: auth.isAuthenticated && !!id,
     refetchInterval: 3_000,
+  })
+}
+
+export function useContainerMetrics(id: string) {
+  const { client, auth } = useApiClient()
+  return useQuery({
+    queryKey: keys.containerMetrics(id),
+    queryFn: () => client.fetchContainerMetrics(id),
+    enabled: auth.isAuthenticated && !!id,
+    refetchInterval: 15_000,
   })
 }
 
@@ -572,6 +586,95 @@ export function useDeleteAgentMemory() {
       client.deleteAgentMemory(id, key),
     onSuccess: (_data, vars) => {
       qc.invalidateQueries({ queryKey: keys.agentMemory(vars.id) })
+    },
+  })
+}
+
+// ─── Edge / WAF Hooks (EDGE-01 / EDGE-02) ───────────────────────────────────
+
+export function useEdgeRules(containerId: string) {
+  const { client, auth } = useApiClient()
+  return useQuery({
+    queryKey: keys.edgeRules(containerId),
+    queryFn: () => client.listEdgeRules(containerId),
+    enabled: auth.isAuthenticated && !!containerId,
+    refetchInterval: 30_000,
+  })
+}
+
+export function useCustomHostnames(containerId: string) {
+  const { client, auth } = useApiClient()
+  return useQuery({
+    queryKey: keys.customHostnames(containerId),
+    queryFn: () => client.listCustomHostnames(containerId),
+    enabled: auth.isAuthenticated && !!containerId,
+    refetchInterval: 30_000,
+  })
+}
+
+export function useRateLimitConfig(containerId: string) {
+  const { client, auth } = useApiClient()
+  return useQuery({
+    queryKey: keys.rateLimitConfig(containerId),
+    queryFn: () => client.getRateLimitConfig(containerId),
+    enabled: auth.isAuthenticated && !!containerId,
+    refetchInterval: 30_000,
+  })
+}
+
+export function useCreateEdgeRule() {
+  const { client } = useApiClient()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (rule: CreateEdgeRuleRequest) => client.createEdgeRule(rule),
+    onSuccess: (_data, vars) => {
+      qc.invalidateQueries({ queryKey: keys.edgeRules(vars.container_id) })
+    },
+  })
+}
+
+export function useDeleteEdgeRule() {
+  const { client } = useApiClient()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, containerId }: { id: string; containerId: string }) =>
+      client.deleteEdgeRule(id).then(() => containerId),
+    onSuccess: (containerId) => {
+      qc.invalidateQueries({ queryKey: keys.edgeRules(containerId) })
+    },
+  })
+}
+
+export function useAddCustomHostname() {
+  const { client } = useApiClient()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (req: AddCustomHostnameRequest) => client.addCustomHostname(req),
+    onSuccess: (_data, vars) => {
+      qc.invalidateQueries({ queryKey: keys.customHostnames(vars.container_id) })
+    },
+  })
+}
+
+export function useDeleteCustomHostname() {
+  const { client } = useApiClient()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, containerId }: { id: string; containerId: string }) =>
+      client.deleteCustomHostname(id).then(() => containerId),
+    onSuccess: (containerId) => {
+      qc.invalidateQueries({ queryKey: keys.customHostnames(containerId) })
+    },
+  })
+}
+
+export function useSetRateLimitConfig() {
+  const { client } = useApiClient()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (cfg: RateLimitConfig) => client.setRateLimitConfig(cfg),
+    onSuccess: (_data, vars) => {
+      qc.invalidateQueries({ queryKey: keys.rateLimitConfig(vars.container_id) })
     },
   })
 }
