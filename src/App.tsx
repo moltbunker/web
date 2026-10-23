@@ -10,6 +10,11 @@ import { EDGE_UI_ENABLED } from '@/lib/features'
 
 const Blog = lazy(() => import('@/pages/Blog'))
 const Roadmap = lazy(() => import('@/pages/roadmap'))
+const TermsOfService = lazy(() => import('@/pages/legal/TermsOfService'))
+const AcceptableUse = lazy(() => import('@/pages/legal/AcceptableUse'))
+const PrivacyPolicy = lazy(() => import('@/pages/legal/PrivacyPolicy'))
+const Dmca = lazy(() => import('@/pages/legal/Dmca'))
+const ReportAbuse = lazy(() => import('@/pages/legal/ReportAbuse'))
 const AppLayout = lazy(() => import('@/components/app/AppLayout'))
 const Overview = lazy(() => import('@/pages/app/Overview'))
 const Deploy = lazy(() => import('@/pages/app/Deploy'))
@@ -58,6 +63,11 @@ function AppShell() {
             <Route path="/blog/*" element={<Blog />} />
             <Route path="/roadmap" element={<Roadmap />} />
             <Route path="/whitepaper" element={<WhitepaperPage />} />
+            <Route path="/legal/terms" element={<TermsOfService />} />
+            <Route path="/legal/aup" element={<AcceptableUse />} />
+            <Route path="/legal/privacy" element={<PrivacyPolicy />} />
+            <Route path="/legal/dmca" element={<Dmca />} />
+            <Route path="/legal/report" element={<ReportAbuse />} />
             <Route path="/app" element={<AppLayout />}>
               <Route index element={<Overview />} />
               <Route path="deploy" element={<Deploy />} />
